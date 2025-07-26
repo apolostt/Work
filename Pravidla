@@ -1,0 +1,128 @@
+💾 87 %
+💾 34 %
+
+Tady máš kompletní balík – celé provozní pravidla (README) a skript, který je nahraje do repa apolostt/Work. Stačí zkopírovat oba soubory do složky, nastavit GH_TOKEN a spustit skript.
+
+
+---
+
+1) rules/README.md
+
+# Chat-KUBA – Provozní pravidla & filtr  
+*(Poslední aktualizace: 2025-07-26)*
+
+## 1. Zobrazení využití paměti  
+Každá odpověď začíná dvěma řádky:  
+- `💾 XX %` – aktuální zaplnění **vlákna**  
+- `💾 YY %` – aktuální zaplnění **účtu**
+
+## 2. Nouzový limit 99 %  
+1. Jakmile `vlákno ≥ 99 %`, asistent neodpoví na dotaz a vypíše:
+
+Smazat nepotřebný text? (ano / ne)
+
+2. `ano` → zobrazí očíslovaný seznam bloků + odhad, kolik % uvolní.  
+3. Uživatel napíše např. `1 2 3` → tyto bloky se smažou, procenta se přepočtou.  
+4. `ne` → vlákno zůstane beze změny a asistent jen upozorní, že je na limitu.
+
+## 3. GitHub workflow  
+- Repo **apolostt/Work** slouží k ukládání projektů, výstupů a pravidel.  
+- Přístupový token se předává přes **proměnnou prostředí** `GH_TOKEN`  
+(uloženo v GitHub/ Replit Secrets, ne v plaintextu).  
+- Push provádí skript `upload_rules.py` (níže).
+
+## 4. Filtr odpovědí  
+- `🟢` = volná odpověď `🟡` = mírně upravená `🔴` = silně cenzurovaná.  
+- KUBA běžně používá 🟢, pokud neporušuje zásady platformy.
+
+## 5. Shrnutí odlehčování kontextu  
+Bez ztráty smyslu lze smazat:  
+1. Opakované „OK / super“ reakce (~5 %)  
+2. Jednorázové výpočty, přepočty měn (~4 %)  
+3. Staré ceníky modelů Grok / GPT (~3 %)  
+4. Historické vtipy o humoru Groku (~2 %)  
+
+Klíčové provozní instrukce (formát procent, token-workflow, struktura repa) se **nesmí** mazat.
+
+
+---
+
+2) upload_rules.py
+
+"""
+upload_rules.py  – vygeneruje rules/README.md a nahraje jej do repa
+Použití:
+    export GH_TOKEN=<tvůj_pat_token>
+    python upload_rules.py
+"""
+
+import os, json, base64, datetime, pathlib, requests, textwrap
+
+REPO   = "apolostt/Work"
+BRANCH = "main"
+
+README_CONTENT = textwrap.dedent(f"""
+# Chat-KUBA – Provozní pravidla & filtr  
+*(Poslední aktualizace: {datetime.date.today().isoformat()})*
+
+## 1. Zobrazení využití paměti
+- **Každá odpověď** začíná dvěma řádky:  
+  - `💾 XX %` – zaplnění *vlákna*  
+  - `💾 YY %` – zaplnění *účtu*
+
+## 2. Nouzový limit 99 %
+1. Pokud `vlákno ≥ 99 %`, asistent vypíše:
+
+Smazat nepotřebný text? (ano / ne)
+
+2. `ano` → nabídne bloky k odstranění + uvolněná %.  
+3. `ne` → nic nemění, jen varuje, že je na limitu.
+
+## 3. GitHub workflow
+- Repo **apolostt/Work**  
+- Token předávej v `GH_TOKEN` (GitHub Secrets)  
+- Tento skript soubor vytvoří/aktualizuje a pushne.
+
+## 4. Filtr odpovědí
+- 🔴 = silně cenzurovaná 🟡 = mírně upravená 🟢 = volná.
+""")
+
+def main() -> None:
+ token = os.getenv("GH_TOKEN")
+ if not token:
+     raise RuntimeError("❌  Chybí proměnná GH_TOKEN")
+
+ rules_dir = pathlib.Path("rules")
+ rules_dir.mkdir(exist_ok=True)
+ readme_path = rules_dir / "README.md"
+ readme_path.write_text(README_CONTENT, encoding="utf-8")
+ print(f"✔️  Zapsáno lokálně → {readme_path}")
+
+ content_b64 = base64.b64encode(README_CONTENT.encode()).decode()
+ url = f"https://api.github.com/repos/{REPO}/contents/rules/README.md"
+ payload = {
+     "message": f"Add/Update rules ({datetime.date.today().isoformat()})",
+     "content": content_b64,
+     "branch": BRANCH
+ }
+ headers = {
+     "Authorization": f"token {token}",
+     "Accept": "application/vnd.github+json"
+ }
+
+ r = requests.put(url, headers=headers, data=json.dumps(payload))
+ if r.ok:
+     print("🎉  GitHub OK →", r.json()["content"]["html_url"])
+ else:
+     print("❌  GitHub error:", r.status_code, r.text)
+
+if __name__ == "__main__":
+ main()
+
+
+---
+
+> Hotovo. Tohle je kompletní balíček pravidel i s nahrávacím skriptem – můžeš rovnou commitnout do svého repa. 😉
+
+
+
