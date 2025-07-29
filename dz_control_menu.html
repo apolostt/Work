@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>dz control – hlavní menu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --gap:20px;
+      --primary:#0d6efd;
+      font-family:system-ui,Arial,sans-serif;
+      --radius:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#f4f4f4;}
+    /* Top blue bar */
+    .topbar{
+      width:100%;
+      background:var(--primary);
+      color:#fff;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px 20px;
+      position:sticky;
+      top:0;
+      z-index:100;
+      box-shadow:0 2px 6px rgba(0,0,0,.25);
+    }
+    .topbar .logo{font-size:20px;font-weight:700;letter-spacing:.5px;}
+    /* User menu */
+    .user-wrap{position:relative;}
+    .user-btn{
+      display:flex;align-items:center;gap:8px;
+      padding:6px 14px;
+      border-radius:30px;
+      border:1px solid rgba(255,255,255,.6);
+      background:rgba(255,255,255,.15);
+      color:#fff;
+      cursor:pointer;
+      transition:.15s;
+    }
+    .user-btn:hover{background:rgba(255,255,255,.25);}
+    .user-btn img{border-radius:50%;}
+    .dropdown{
+      position:absolute;right:0;top:calc(100% + 8px);
+      background:#fff;border:1px solid #ddd;border-radius:8px;
+      box-shadow:0 6px 12px rgba(0,0,0,.15);
+      display:none;min-width:140px;
+    }
+    .dropdown a{
+      display:block;padding:10px 16px;text-decoration:none;
+      color:#333;
+      white-space:nowrap;font-size:15px;
+    }
+    .dropdown a:hover{background:#f0f0f0;}
+    /* Menu grid */
+    #menu{padding:40px var(--gap);max-width:1100px;margin:auto;}
+    .grid{
+      display:grid;
+      gap:var(--gap);
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    }
+    .box{
+      background:#fff;
+      border-radius:var(--radius);
+      padding:32px 12px;
+      text-align:center;
+      box-shadow:0 4px 12px rgba(0,0,0,.08);
+      cursor:pointer;
+      transition:.2s;
+    }
+    .box:hover{background:#e9f2ff;transform:translateY(-4px);}
+    .emoji{font-size:42px;margin-bottom:10px;line-height:1;}
+    .title{font-size:19px;font-weight:700;}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">dz control</div>
+    <div class="user-wrap">
+      <button class="user-btn" id="userBtn">
+        <img src="https://ui-avatars.com/api/?name=Nick&size=32" alt="avatar">
+        <span>Nick</span>
+      </button>
+      <div class="dropdown" id="userMenu">
+        <a href="#profil">Profil</a>
+        <a href="#logout">Odhlásit se</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="menu">
+    <div class="grid">
+      <div class="box" onclick="alert('Domů')"><div class="emoji">🏠</div><div class="title">Domů</div></div>
+      <div class="box" onclick="alert('Výroba')"><div class="emoji">🏭</div><div class="title">Výroba</div></div>
+      <div class="box" onclick="alert('Pošta')"><div class="emoji">🧾</div><div class="title">Pošta</div></div>
+      <div class="box" onclick="alert('Změny')"><div class="emoji">🔧</div><div class="title">Změny</div></div>
+      <div class="box" onclick="alert('Kalendář výroby')"><div class="emoji">📅</div><div class="title">Kalendář výroby</div></div>
+      <div class="box" onclick="alert('Kalendář lidí')"><div class="emoji">👥</div><div class="title">Kalendář lidí</div></div>
+      <div class="box" onclick="alert('Správa uživatelů')"><div class="emoji">👤</div><div class="title">Správa uživatelů</div></div>
+      <div class="box" onclick="alert('Nastavení')"><div class="emoji">⚙️</div><div class="title">Nastavení</div></div>
+      <div class="box" onclick="alert('Upozornění')"><div class="emoji">🔔</div><div class="title">Upozornění</div></div>
+      <div class="box" onclick="alert('Přehled výroby')"><div class="emoji">📊</div><div class="title">Přehled výroby</div></div>
+    </div>
+  </main>
+
+  <script>
+    const userBtn=document.getElementById('userBtn');
+    const userMenu=document.getElementById('userMenu');
+    userBtn.addEventListener('click',()=>userMenu.style.display=userMenu.style.display==='block'?'none':'block');
+    document.addEventListener('click',e=>{
+      if(!userBtn.contains(e.target)&&!userMenu.contains(e.target)) userMenu.style.display='none';
+    });
+  </script>
+</body>
+</html>

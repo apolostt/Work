@@ -1,0 +1,148 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DZ Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span class="text-3xl">📊</span>
+            <h1 class="text-2xl font-bold">dz control</h1>
+        </div>
+        <div class="relative">
+            <button id="userMenuButton" class="flex items-center space-x-2">
+                <span class="text-lg">👤 Nick</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+            <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg">
+                <a href="#" class="block px-4 py-2 hover:bg-gray-200">Profil</a>
+                <a href="#" class="block px-4 py-2 hover:bg-gray-200">Odhlásit se</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4">
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap gap-4 mb-4">
+            <button onclick="showSection('objednavky')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center"><span class="text-2xl mr-2">📦</span> Objednávky</button>
+            <button onclick="showSection('surovina')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center"><span class="text-2xl mr-2">🥩</span> Surovina</button>
+            <button onclick="showSection('material')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center"><span class="text-2xl mr-2">📦</span> Materiál</button>
+        </div>
+
+        <!-- Objednávky Section -->
+        <div id="objednavky" class="section">
+            <h2 class="text-2xl font-bold mb-4 flex items-center"><span class="text-3xl mr-2">📦</span> Objednávky</h2>
+            <p class="mb-4">Vyber zákazníka kliknutím na tlačítko:</p>
+            <div class="flex flex-wrap gap-2">
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Billa</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Tesco</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Kaufland</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Lidl</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Albert</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Rohlík</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Jednota</button>
+            </div>
+        </div>
+
+        <!-- Surovina Section -->
+        <div id="surovina" class="section hidden">
+            <h2 class="text-2xl font-bold mb-4 flex items-center"><span class="text-3xl mr-2">🥩</span> Surovina</h2>
+            <p class="mb-4">Zde se zobrazí přehled požadovaných surovin.</p>
+            <div class="flex flex-wrap gap-2">
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🥩</span> řízky</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> prsa</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> strips</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍖</span> hřbety přední</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍖</span> hřbety zadní</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> stehna</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> čtvrtky</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> horní</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> spodní</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> křídla</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🫀</span> játra</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍖</span> žaludky</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">❤️</span> srdce</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🦴</span> krky</button>
+            </div>
+        </div>
+
+        <!-- Materiál Section -->
+        <div id="material" class="section hidden">
+            <h2 class="text-2xl font-bold mb-4 flex items-center"><span class="text-3xl mr-2">📦</span> Materiál</h2>
+            <p class="mb-4">Zde najdete souhrn materiálu (misky, bedny, etikety…).</p>
+            <div class="flex flex-wrap gap-2">
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🥣</span> misky</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🏷️</span> horní etiketa</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🏷️</span> spodní etiketa</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🏷️</span> konečná etiketa</button>
+                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🧻</span> folie</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript for interactivity -->
+    <script>
+        // Toggle user menu
+        document.getElementById('userMenuButton').addEventListener('click', () => {
+            document.getElementById('userMenu').classList.toggle('hidden');
+        });
+
+        // Show/hide sections
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        // Initialize with Objednávky section visible
+        showSection('objednavky');
+    </script>
+</body>
+</html>

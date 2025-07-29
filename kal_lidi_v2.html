@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Kalendář lidí – July 2025</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root {
+  --primary:#0d6efd;
+  --radius:8px;
+  font-family:system-ui,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f4f4f4;padding:20px}
+h1{text-align:center;margin-bottom:20px}
+/* ====== statistiky ====== */
+.stats{display:flex;gap:14px;justify-content:center;margin-bottom:20px}
+.stat{flex:1 1 120px;background:#fff;padding:10px;border-radius:var(--radius);text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.stat h3{margin-bottom:4px;font-size:14px}
+/* ====== přepínač měsíce ===== */
+.month-bar{display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:14px}
+.month-bar button{background:var(--primary);color:#fff;border:0;border-radius:var(--radius);padding:6px 10px;font-weight:600;cursor:pointer}
+/* ====== kalendář ===== */
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dow, .day{border:1px solid #ddd;background:#fff;min-height:80px;display:flex;flex-direction:column}
+.dow{background:#e9e9e9;align-items:center;justify-content:center;font-weight:700;min-height:30px}
+.day.disabled{background:#f2f2f2}
+.day span.date{font-size:12px;font-weight:600;padding:4px}
+.day .tags{font-size:12px;line-height:1.2;padding:2px 4px}
+.weekend{background:#fafafa}
+/* ====== buttons & modal ===== */
+#addBtn{position:fixed;top:20px;right:20px;background:#28a745;color:#fff;border:0;border-radius:var(--radius);padding:10px 16px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100}
+.modal{background:#fff;padding:20px;border-radius:var(--radius);width:90%;max-width:420px}
+.modal label{display:block;margin:8px 0 2px;font-size:14px;font-weight:600}
+.modal input,.modal select{width:100%;padding:6px;border:1px solid #ccc;border-radius:6px;font-size:14px}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.actions button{border:0;border-radius:var(--radius);padding:6px 12px;font-weight:600;cursor:pointer}
+.cancel{background:#6c757d;color:#fff}
+.save{background:#0d6efd;color:#fff}
+/* ====== souhrn ===== */
+.summary{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.post{background:#fff;border:1px solid #ddd;border-radius:var(--radius);padding:6px 10px;font-size:13px}
+</style>
+</head>
+<body>
+<h1>Kalendář lidí – July 2025</h1>
+
+<div class="stats">
+  <div class="stat" style="background:#ffd6d6"><h3>Odjezdy</h3><span id="s-odj">0</span></div>
+  <div class="stat" style="background:#d6ffd6"><h3>Dovolená</h3><span id="s-dov">0</span></div>
+  <div class="stat" style="background:#fff4c4"><h3>Nemoc</h3><span id="s-nem">0</span></div>
+</div>
+
+<div class="month-bar">
+  <button id="prev">◄</button>
+  <h2 id="lbl"></h2>
+  <button id="next">►</button>
+</div>
+
+<div class="calendar" id="cal"></div>
+
+<button id="addBtn">➕ Přidat</button>
+
+<div class="summary" id="sum"></div>
+
+<!-- modal -->
+<div class="modal-overlay" id="overlay">
+  <div class="modal">
+    <h2>Přidat událost</h2>
+    <form id="frm">
+      <label>Typ události</label>
+      <select id="typ">
+        <option>Odjezd</option><option>Dovolená</option><option>Nemoc</option>
+      </select>
+      <label>Od</label><input type="date" id="od" required>
+      <label>Do (vol.)</label><input type="date" id="do">
+      <label>Jméno / čip</label><input id="jmeno" required>
+      <label>Pracovní místo</label>
+      <select id="place">
+        <option value="">--</option><option>Bizzerba</option><option>iCut</option><option>Manipulant</option><option>Lima</option><option>KFC</option><option>Špízy</option><option>Robot</option><option>Netto váha</option>
+      </select>
+      <div class="actions">
+        <button type="button" class="cancel" id="cls">Zrušit</button>
+        <button type="submit" class="save">Uložit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const cal=document.getElementById('cal'),lbl=document.getElementById('lbl');
+let cur=new Date(),ev=[];
+const icons={'Odjezd':'🚗','Dovolená':'🌴','Nemoc':'🤒'};
+const stats={'Odjezd':'s-odj','Dovolená':'s-dov','Nemoc':'s-nem'};
+
+function render() {
+  cal.innerHTML='';
+  const ym=cur.toLocaleString('cs-CZ',{month:'long',year:'numeric'});
+  lbl.textContent=ym.charAt(0).toUpperCase()+ym.slice(1);
+  const y=cur.getFullYear(),m=cur.getMonth();
+  const first=(new Date(y,m,1).getDay()||7)-1; // 0-6, Mon=0
+  const days=new Date(y,m+1,0).getDate();
+  // header dow
+  ['Po','Út','St','Čt','Pá','So','Ne'].forEach(d=>{const h=document.createElement('div');h.className='dow';h.textContent=d;cal.appendChild(h);});
+  for(let i=0;i<42;i++){const cell=document.createElement('div');cell.className='day';
+    const d=i-first+1;
+    if(i<first||d>days){cell.classList.add('disabled');cal.appendChild(cell);continue;}
+    const dateStr=new Date(y,m,d).toISOString().split('T')[0];
+    cell.dataset.date=dateStr;
+    if((i%7)==5|| (i%7)==6) cell.classList.add('weekend');
+    cell.innerHTML=`<span class='date'>${d}</span><div class='tags'></div>`;
+    cell.addEventListener('click',()=>show(dateStr));
+    cal.appendChild(cell);
+  }
+  update();
+}
+
+function update() {
+  document.querySelectorAll('.tags').forEach(t=>t.textContent='');
+  {for(const k in stats) document.getElementById(stats[k]).textContent=0;}
+  const sum={};
+  ev.forEach(e=>{const tg=document.querySelector(`[data-date='${e.date}'] .tags`);if(tg) tg.textContent+=icons[e.typ];
+    document.getElementById(stats[e.typ]).textContent=+document.getElementById(stats[e.typ]).textContent+1;
+    if(e.place) sum[e.place]=(sum[e.place]||0)+1;
+  });
+  const s=document.getElementById('sum');s.innerHTML='';
+  for(const p in sum){const div=document.createElement('div');div.className='post';div.textContent=`${p}: ${sum[p]}`;s.appendChild(div);}
+}
+
+function show(d) {
+  const list=ev.filter(e=>e.date===d);
+  alert(list.length?list.map(e=>`${e.jmeno} – ${e.typ}`).join('\n'):'Žádné události tento den');
+}
+
+document.getElementById('prev').onclick=()=>{cur.setMonth(cur.getMonth()-1);render();};
+document.getElementById('next').onclick=()=>{cur.setMonth(cur.getMonth()+1);render();};
+document.getElementById('addBtn').onclick=()=>document.getElementById('overlay').style.display='flex';
+document.getElementById('cls').onclick=()=>document.getElementById('overlay').style.display='none';
+document.getElementById('frm').onsubmit=e=>{e.preventDefault();
+  const data={typ:document.getElementById('typ').value,od:document.getElementById('od').value,
+               jmeno:document.getElementById('jmeno').value,place:document.getElementById('place').value};
+  if(!data.od||!data.jmeno){alert('Vyplň povinná pole');return;}
+  ev.push({...data,date:data.od});
+  document.getElementById('overlay').style.display='none';
+  e.target.reset();update();
+};
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Týdenní kalendář výroby</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root { --prim:#0d6efd; --rad:8px; font-family:system-ui,Arial,sans-serif; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:#f6f6f6; padding:20px; }
+h1 { text-align:center; margin-bottom:18px; }
+select,button { font-size:15px; }
+#monthSel { margin:auto; margin-bottom:12px; padding:6px 10px; display:block; }
+.week-bar { display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:12px; }
+.week-bar button { background:var(--prim); color:#fff; border:0; border-radius:var(--rad); padding:6px 10px; cursor:pointer; font-weight:600; }
+.week-label { font-size:18px; font-weight:700; }
+.calendar { max-width:300px; margin:auto; border:1px solid #ccc; border-radius:var(--rad); overflow:hidden; }
+.day { border-bottom:1px solid #ddd; background:#fff; min-height:70px; padding:8px; cursor:pointer; display:flex; flex-direction:column; }
+.day:last-child { border-bottom:0; }
+.date { font-weight:600; font-size:13px; }
+.entries { font-size:13px; margin-top:4px; }
+.addBtn { position:fixed; right:20px; top:20px; padding:10px 16px; background:#28a745; color:#fff; border:0; border-radius:var(--rad); font-weight:600; cursor:pointer; }
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center; z-index:200; }
+.modal { background:#fff; padding:20px; border-radius:var(--rad); width:92%; max-width:420px; max-height:90vh; overflow:auto; }
+label { display:block; margin:8px 0 2px; font-size:14px; font-weight:600; }
+input,select { width:100%; padding:6px; border:1px solid #ccc; border-radius:6px; font-size:14px; }
+.actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+.actions button { padding:6px 12px; border:0; border-radius:var(--rad); font-weight:600; cursor:pointer; }
+.cancel { background:#6c757d; color:#fff; }
+.save { background:var(--prim); color:#fff; }
+.bedInputs div { margin:4px 0; font-size:13px; }
+.bedInputs input { width:70px; }
+</style>
+</head>
+<body>
+<h1>Kalendář výroby</h1>
+
+<select id="monthSel"><option value='0' >Leden</option><option value='1' >Únor</option><option value='2' >Březen</option><option value='3' >Duben</option><option value='4' >Květen</option><option value='5' >Červen</option><option value='6' selected>Červenec</option><option value='7' >Srpen</option><option value='8' >Září</option><option value='9' >Říjen</option><option value='10' >Listopad</option><option value='11' >Prosinec</option></select>
+
+<div class="week-bar">
+  <button id="prevW">◄</button>
+  <div class="week-label" id="weekLbl"></div>
+  <button id="nextW">►</button>
+</div>
+
+<div class="calendar" id="cal"></div>
+
+<button class="addBtn" id="addBtn">➕ Přidat</button>
+
+<div class="overlay" id="ov">
+  <div class="modal">
+    <h2>Nová akce</h2>
+    <form id="form">
+      <label>Zákazník</label>
+      <select id="cust">
+        <option>Billa</option><option>Tesco</option><option>Kaufland</option><option>Lidl</option><option>Ahold</option><option>Rohlík</option>
+      </select>
+      <label>Datum od</label><input type="date" id="from" required>
+      <label>Datum do</label><input type="date" id="to">
+      <div id="bedWrap" style="display:none">
+        <label>Bedny podle dní</label>
+        <div class="bedInputs" id="bedInputs"></div>
+      </div>
+      <label>Surovina</label>
+      <select id="item">
+        <option>Řízky</option><option>Prsa</option><option>Hřbety</option><option>Horní</option><option>Spodní</option><option>Stehna</option><option>Čtvrtky</option><option>Křídla</option><option>Steak</option><option>Játra</option><option>Žaludky</option><option>Srdce</option><option>Krky</option>
+      </select>
+      <div class="actions">
+        <button type="button" class="cancel" id="close">Zrušit</button>
+        <button type="submit" class="save">Uložit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// data
+const cal=document.getElementById('cal'), lbl=document.getElementById('weekLbl'), monthSel=document.getElementById('monthSel');
+const overlay=document.getElementById('ov'), form=document.getElementById('form'), bedWrap=document.getElementById('bedWrap'), bedInputs=document.getElementById('bedInputs');
+let events=[], weekStart;
+
+function initWeek(){
+  const base=new Date(new Date().getFullYear(), parseInt(monthSel.value), 1);
+  weekStart=new Date(base);
+  const day=(weekStart.getDay()+6)%7;
+  weekStart.setDate(base.getDate()-day);
+}
+function isoWeek(d){
+  d=new Date(d); d.setHours(0,0,0,0);
+  d.setDate(d.getDate()+3-(d.getDay()+6)%7);
+  const w1=new Date(d.getFullYear(),0,4);
+  return 1+Math.round(((d-w1)/86400000-3+(w1.getDay()+6)%7)/7);
+}
+function render(){
+  cal.innerHTML='';
+  const end=new Date(weekStart); end.setDate(weekStart.getDate()+6);
+  lbl.textContent=`Týden ${isoWeek(weekStart)} ${weekStart.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric'})}–${end.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric'})}`;
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart); d.setDate(weekStart.getDate()+i);
+    const cell=document.createElement('div'); cell.className='day'; cell.dataset.date=d.toISOString().split('T')[0];
+    cell.innerHTML=`<span class='date'>${d.toLocaleDateString('cs-CZ',{weekday:'short',day:'numeric'})}`+`</span><div class='entries'></div>`;
+    cell.onclick=()=>showDay(cell.dataset.date);
+    cal.appendChild(cell);
+  }
+  update();
+}
+function update(){
+  document.querySelectorAll('.entries').forEach(e=>e.textContent='');
+  events.forEach(ev=>{
+    const box=document.querySelector(`[data-date='${ev.date}'] .entries`);
+    if(box) box.textContent=`${ev.cust} (${ev.bed})`;
+  });
+}
+function showDay(date){
+  const list=events.filter(e=>e.date===date);
+  alert(list.length?list.map(e=>`${e.cust} – ${e.item} – ${e.bed} bd`).join('\n'):'Žádné akce');
+}
+document.getElementById('prevW').onclick=()=>{weekStart.setDate(weekStart.getDate()-7); render();};
+document.getElementById('nextW').onclick=()=>{weekStart.setDate(weekStart.getDate()+7); render();};
+monthSel.onchange=()=>{initWeek(); render();};
+document.getElementById('addBtn').onclick=()=>overlay.style.display='flex';
+document.getElementById('close').onclick=()=>overlay.style.display='none';
+form.from.onchange=form.to.onchange=function(){
+  if(form.to.value){
+    bedWrap.style.display='block';
+    bedInputs.innerHTML='';
+    for(let d=new Date(form.from.value); d<=new Date(form.to.value); d.setDate(d.getDate()+1)){
+      bedInputs.insertAdjacentHTML('beforeend', `<div>${d.toLocaleDateString('cs-CZ',{weekday:'short',day:'numeric'})}: <input type='number' min='0' value='0'></div>`);
+    }
+  } else { bedWrap.style.display='none'; bedInputs.innerHTML=''; }
+};
+form.onsubmit=e=>{
+  e.preventDefault();
+  if(form.to.value){
+    let i=0;
+    for(let d=new Date(form.from.value); d<=new Date(form.to.value); d.setDate(d.getDate()+1)){
+      const bed=bedInputs.querySelectorAll('input')[i++].value||0;
+      events.push({cust:form.cust.value,date:d.toISOString().split('T')[0],item:form.item.value,bed});
+    }
+  } else {
+    events.push({cust:form.cust.value,date:form.from.value,item:form.item.value,bed:0});
+  }
+  overlay.style.display='none';
+  form.reset();
+  bedWrap.style.display='none';
+  bedInputs.innerHTML='';
+  render();
+};
+initWeek(); render();
+</script>
+</body>
+</html>
