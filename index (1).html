@@ -1,148 +1,909 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
-<html lang="cs">
+<!DOCTYPE html>
+<html lang="cs" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DZ Control</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Surovinový Manažer 2.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #eef2f7;
+            --text-primary: #1a202c;
+            --text-secondary: #5a677d;
+            --border-color: #dbe1e8;
+            --accent-primary: #3498db;
+            --accent-primary-hover: #2980b9;
+            --accent-danger: #e74c3c;
+            --accent-danger-hover: #c0392b;
+            --accent-success: #2ecc71;
+            --accent-success-hover: #27ae60;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --font-family: 'Inter', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-tertiary: #252d3b;
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --border-color: #4a5568;
+            --accent-primary: #4299e1;
+            --accent-primary-hover: #63b3ed;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #app-nav {
+            width: 260px;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        #app-main {
+            flex-grow: 1;
+            padding: 25px;
+            overflow-y: auto;
+        }
+
+        .nav-header { font-size: 1.5rem; font-weight: 700; margin-bottom: 30px; }
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-links a.active { background-color: var(--accent-primary); color: white; }
+        .nav-links a:not(.active):hover { background-color: var(--bg-tertiary); color: var(--text-primary); }
+        .nav-links a svg { margin-right: 12px; }
+        .nav-footer { margin-top: auto; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+        .form-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin-bottom: 15px; }
+        .form-field { flex: 1; min-width: 150px; }
+
+        .page { display: none; }
+        .page.active { display: block; }
+        .page-header { font-size: 2rem; font-weight: 700; margin-bottom: 25px; }
+
+        .card {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+        .card-title { font-size: 1.25rem; font-weight: 600; }
+
+        .btn {
+            padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+            font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary { background-color: var(--accent-primary); color: white; }
+        .btn-primary:hover { background-color: var(--accent-primary-hover); }
+        .btn-success { background-color: var(--accent-success); color: white; }
+        .btn-success:hover { background-color: var(--accent-success-hover); }
+        .btn-danger { background-color: var(--accent-danger); color: white; }
+        .btn-danger:hover { background-color: var(--accent-danger-hover); }
+        .btn-icon { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .btn-icon:hover { background-color: var(--bg-tertiary); }
+        .btn-icon svg { width: 20px; height: 20px; stroke: var(--text-secondary); }
+        .btn-icon.danger:hover svg { stroke: var(--accent-danger); }
+
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .data-table th { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary); }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table .actions { text-align: right; }
+        .shortage { color: var(--accent-danger); font-weight: 600; }
+        .surplus { color: var(--accent-success); font-weight: 600; }
+
+        .accordion details { margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 8px; }
+        .accordion summary {
+            padding: 15px; font-weight: 600; cursor: pointer; list-style: none;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .accordion summary::-webkit-details-marker { display: none; }
+        .accordion summary::after { content: '+'; font-size: 1.5rem; }
+        .accordion details[open] summary { border-bottom: 1px solid var(--border-color); }
+        .accordion details[open] summary::after { content: '−'; }
+        .accordion .details-content { padding: 15px; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--bg-secondary); padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 600px; }
+        .modal-body { max-height: 60vh; overflow-y: auto; padding-right: 10px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 1.5rem; font-weight: 600; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 15px 20px; border-radius: 8px; color: white; font-weight: 600; box-shadow: var(--shadow); opacity: 0; transform: translateX(100%); animation: slideIn 0.5s forwards, fadeOut 0.5s 2.5s forwards; }
+        .toast.success { background-color: var(--accent-success); }
+        .toast.error { background-color: var(--accent-danger); }
+        @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeOut { to { opacity: 0; } }
+
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <!-- Header -->
-    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <span class="text-3xl">📊</span>
-            <h1 class="text-2xl font-bold">dz control</h1>
-        </div>
-        <div class="relative">
-            <button id="userMenuButton" class="flex items-center space-x-2">
-                <span class="text-lg">👤 Nick</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-            </button>
-            <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg">
-                <a href="#" class="block px-4 py-2 hover:bg-gray-200">Profil</a>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-200">Odhlásit se</a>
+<body>
+
+    <nav id="app-nav">
+        <div>
+            <div class="nav-header">Suroviny 2.0</div>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" data-view="daily-plan"><span>Denní Plán</span></a>
+                <a href="#" class="nav-link" data-view="orders"><span>Objednávky</span></a>
+                <a href="#" class="nav-link" data-view="box-weights"><span>Váhy beden</span></a>
+                <a href="#" class="nav-link" data-view="create-mix"><span>Vytvořit mix</span></a>
+                <a href="#" class="nav-link" data-view="palette-weights"><span>Váhy palet</span></a>
             </div>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="container mx-auto p-4">
-        <!-- Navigation Tabs -->
-        <div class="flex flex-wrap gap-4 mb-4">
-            <button onclick="showSection('objednavky')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center"><span class="text-2xl mr-2">📦</span> Objednávky</button>
-            <button onclick="showSection('surovina')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center"><span class="text-2xl mr-2">🥩</span> Surovina</button>
-            <button onclick="showSection('material')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center"><span class="text-2xl mr-2">📦</span> Materiál</button>
+        <div class="nav-footer">
+            <div class="form-group">
+                <label for="selectedDate">Datum plánu</label>
+                <input type="date" id="selectedDate">
+            </div>
         </div>
+    </nav>
 
-        <!-- Objednávky Section -->
-        <div id="objednavky" class="section">
-            <h2 class="text-2xl font-bold mb-4 flex items-center"><span class="text-3xl mr-2">📦</span> Objednávky</h2>
-            <p class="mb-4">Vyber zákazníka kliknutím na tlačítko:</p>
-            <div class="flex flex-wrap gap-2">
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Billa</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Tesco</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Kaufland</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Lidl</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Albert</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Rohlík</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Jednota</button>
+    <main id="app-main">
+        <!-- 1. Denní Plán View -->
+        <div id="view-daily-plan" class="page active">
+            <h1 class="page-header">Denní Plán</h1>
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Přehled Surovin na Den</h2></div>
+                <div class="card-content">
+                    <table class="data-table" id="suroviny-overview-table">
+                        <thead><tr><th>Surovina</th><th>Skladem (palet)</th><th>Potřeba (kg)</th><th>Chybí / Přebývá (palet)</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Surovina Section -->
-        <div id="surovina" class="section hidden">
-            <h2 class="text-2xl font-bold mb-4 flex items-center"><span class="text-3xl mr-2">🥩</span> Surovina</h2>
-            <p class="mb-4">Zde se zobrazí přehled požadovaných surovin.</p>
-            <div class="flex flex-wrap gap-2">
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🥩</span> řízky</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> prsa</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> strips</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍖</span> hřbety přední</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍖</span> hřbety zadní</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> stehna</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> čtvrtky</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> horní</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> spodní</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍗</span> křídla</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🫀</span> játra</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🍖</span> žaludky</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">❤️</span> srdce</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🦴</span> krky</button>
+        <!-- 2. Objednávky View -->
+        <div id="view-orders" class="page">
+            <h1 class="page-header">Objednávky</h1>
+            <div class="accordion" id="orders-accordion"></div>
+        </div>
+
+        <!-- 3. Váhy Beden View -->
+        <div id="view-box-weights" class="page">
+            <h1 class="page-header">Váhy beden dle zákazníka</h1>
+            <div class="card">
+                <div class="accordion" id="box-weights-accordion"></div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-primary" id="save-all-box-weights-btn">Uložit všechny změny</button>
+                </div>
             </div>
         </div>
 
-        <!-- Materiál Section -->
-        <div id="material" class="section hidden">
-            <h2 class="text-2xl font-bold mb-4 flex items-center"><span class="text-3xl mr-2">📦</span> Materiál</h2>
-            <p class="mb-4">Zde najdete souhrn materiálu (misky, bedny, etikety…).</p>
-            <div class="flex flex-wrap gap-2">
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🥣</span> misky</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🏷️</span> horní etiketa</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🏷️</span> spodní etiketa</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🏷️</span> konečná etiketa</button>
-                <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 flex items-center"><span class="text-xl mr-2">🧻</span> folie</button>
+        <!-- 4. Vytvořit Mix View -->
+        <div id="view-create-mix" class="page">
+            <h1 class="page-header" id="create-mix-header">Vytvořit nový mix</h1>
+            <div class="card">
+                <div class="form-row">
+                    <div class="form-field"><label for="new-product-name">Název mixu</label><input type="text" id="new-product-name"></div>
+                </div>
+                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 20px 0;">
+                <h3>Složení mixu</h3>
+                <div id="new-product-components"></div>
+                <button class="btn btn-success" id="add-new-product-component-btn" style="margin-top: 10px;">+ Přidat surovinu</button>
+                <div style="font-weight: bold; margin-top: 15px;">Celkem: <span id="new-product-total-percentage">0</span>%</div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-primary" id="save-new-product-btn">Uložit mix</button>
+                    <button class="btn" id="cancel-edit-mix-btn" style="display: none;">Zrušit úpravu</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Existující mixy</h2></div>
+                <div class="card-content">
+                    <table class="data-table" id="existing-mixes-table">
+                        <thead><tr><th>Název mixu</th><th>Složení</th><th class="actions">Akce</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Váhy Palet View -->
+        <div id="view-palette-weights" class="page">
+            <h1 class="page-header">Váhy palet</h1>
+            <div class="card">
+                <table class="data-table" id="palette-weights-table">
+                    <thead><tr><th>Surovina</th><th>Váha palety (kg)</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+                 <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-primary" id="save-all-palette-weights-btn">Uložit všechny změny</button>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- JavaScript for interactivity -->
-    <script>
-        // Toggle user menu
-        document.getElementById('userMenuButton').addEventListener('click', () => {
-            document.getElementById('userMenu').classList.toggle('hidden');
-        });
+    <!-- Modals -->
+    <div id="mix-ratio-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="mix-ratio-modal-title">Upravit poměr surovin</h2>
+                <button class="btn-icon" data-action="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="mix-ratio-modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn" data-action="close-modal">Zrušit</button>
+                <button class="btn btn-primary" id="save-mix-ratio-btn">Uložit poměr</button>
+            </div>
+        </div>
+    </div>
 
-        // Show/hide sections
-        function showSection(sectionId) {
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.add('hidden');
-            });
-            document.getElementById(sectionId).classList.remove('hidden');
+    <div id="add-order-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="add-order-modal-title">Přidat položky do objednávky</h2>
+                <button class="btn-icon" data-action="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="add-order-modal-body">
+                <!-- Content generated by JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-action="close-modal">Zrušit</button>
+                <button class="btn btn-primary" id="save-added-items-btn">Přidat do objednávky</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ICONS = {
+            trash: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+            edit: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>`,
+        };
+
+        let appState = {};
+
+        const DOMElements = {
+            navLinks: document.querySelectorAll('.nav-link'),
+            views: document.querySelectorAll('.page'),
+            selectedDateInput: document.getElementById('selectedDate'),
+            surovinyOverviewTableBody: document.querySelector('#suroviny-overview-table tbody'),
+            ordersAccordion: document.getElementById('orders-accordion'),
+            boxWeightsAccordion: document.getElementById('box-weights-accordion'),
+            saveAllBoxWeightsBtn: document.getElementById('save-all-box-weights-btn'),
+            createMixHeader: document.getElementById('create-mix-header'),
+            newProductName: document.getElementById('new-product-name'),
+            newProductComponents: document.getElementById('new-product-components'),
+            addNewProductComponentBtn: document.getElementById('add-new-product-component-btn'),
+            newProductTotalPercentage: document.getElementById('new-product-total-percentage'),
+            saveNewProductBtn: document.getElementById('save-new-product-btn'),
+            cancelEditMixBtn: document.getElementById('cancel-edit-mix-btn'),
+            existingMixesTableBody: document.querySelector('#existing-mixes-table tbody'),
+            paletteWeightsTableBody: document.querySelector('#palette-weights-table tbody'),
+            saveAllPaletteWeightsBtn: document.getElementById('save-all-palette-weights-btn'),
+            mixRatioModal: document.getElementById('mix-ratio-modal'),
+            mixRatioModalTitle: document.getElementById('mix-ratio-modal-title'),
+            mixRatioModalBody: document.getElementById('mix-ratio-modal-body'),
+            saveMixRatioBtn: document.getElementById('save-mix-ratio-btn'),
+            addOrderModal: document.getElementById('add-order-modal'),
+            addOrderModalTitle: document.getElementById('add-order-modal-title'),
+            addOrderModalBody: document.getElementById('add-order-modal-body'),
+            saveAddedItemsBtn: document.getElementById('save-added-items-btn'),
+            toastContainer: document.getElementById('toast-container'),
+        };
+
+        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
+        function loadState() {
+            const savedState = localStorage.getItem('surovinyAppData_v6');
+            if (savedState) {
+                appState = JSON.parse(savedState);
+            } else {
+                setupDefaultData();
+            }
+            appState.ui = {
+                selectedDate: new Date().toISOString().split('T')[0],
+                activeView: 'daily-plan',
+                editingOrderItemId: null,
+                addingToCustomerId: null,
+                editingMixId: null,
+            };
         }
 
-        // Initialize with Objednávky section visible
-        showSection('objednavky');
+        function saveState() {
+            const stateToSave = { ...appState };
+            delete stateToSave.ui; 
+            localStorage.setItem('surovinyAppData_v6', JSON.stringify(stateToSave));
+        }
+
+        function setupDefaultData() {
+            appState.suroviny = [
+                {id: 's01', name: 'ŘÍZKY'}, {id: 's02', name: 'STRIPS'}, {id: 's03', name: 'PRSA'},
+                {id: 's04', name: 'HRBETY'}, {id: 's05', name: 'PRDELE'}, {id: 's06', name: 'HORNÍ STEHNA'},
+                {id: 's07', name: 'SPODNÍ STEHNA'}, {id: 's08', name: 'ČTVRTKY'}, {id: 's09', name: 'KŘÍDLA'},
+                {id: 's10', name: 'PLACKY'}, {id: 's11', name: 'BANDURY'}, {id: 's12', name: 'STEAK'},
+                {id: 's13', name: 'JÁTRA'}, {id: 's14', name: 'SRDCE'}, {id: 's15', name: 'ŽALUDKY'}, {id: 's16', name: 'KRKY'}
+            ].map(s => ({ ...s, paletteWeight: 500, stock: 0, isMix: false }));
+
+            appState.zakaznici = [
+                {id: 'c1', name: 'Ahold'}, {id: 'c2', name: 'Billa'}, {id: 'c3', name: 'Tesco'},
+                {id: 'c4', name: 'Kaufland'}, {id: 'c5', name: 'Lidl'}, {id: 'c6', name: 'Rohlik'}
+            ];
+
+            appState.boxWeights = {}; // { customerId: { surovinaId: weightInGrams } }
+            appState.zakaznici.forEach(c => {
+                appState.boxWeights[c.id] = {};
+                appState.suroviny.forEach(s => {
+                    appState.boxWeights[c.id][s.id] = 10000; // default 10000g (10kg)
+                });
+            });
+
+            appState.orders = []; // { id, date, customerId, items: [{id, surovinaId, boxCount, ratioOverride: [{surovinaId, percentage}] }] }
+            appState.mixDefinitions = {}; // { mixId: { components: [{surovinaId, percentage, loss}] } }
+        }
+
+        function bindEvents() {
+            DOMElements.navLinks.forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    appState.ui.activeView = e.currentTarget.dataset.view;
+                    render();
+                });
+            });
+            DOMElements.selectedDateInput.addEventListener('change', () => {
+                appState.ui.selectedDate = DOMElements.selectedDateInput.value;
+                render();
+            });
+            DOMElements.saveAllBoxWeightsBtn.addEventListener('click', saveAllBoxWeights);
+            DOMElements.addNewProductComponentBtn.addEventListener('click', () => renderNewProductComponents(true));
+            DOMElements.saveNewProductBtn.addEventListener('click', saveNewProduct);
+            DOMElements.cancelEditMixBtn.addEventListener('click', cancelEditMix);
+            DOMElements.saveAllPaletteWeightsBtn.addEventListener('click', saveAllPaletteWeights);
+            DOMElements.saveMixRatioBtn.addEventListener('click', saveMixRatio);
+            DOMElements.saveAddedItemsBtn.addEventListener('click', saveAddedItems);
+            document.body.addEventListener('click', handleGlobalClick);
+        }
+
+        function handleGlobalClick(e) {
+            const actionTarget = e.target.closest('[data-action]');
+            if (!actionTarget) return;
+
+            const { action, customerId, orderId, itemId, mixId } = actionTarget.dataset;
+
+            switch (action) {
+                case 'add-order-items': openAddOrderModal(customerId); break;
+                case 'delete-order-item': deleteOrderItem(orderId, itemId); break;
+                case 'edit-mix-ratio': openMixRatioModal(orderId, itemId); break;
+                case 'delete-new-product-component': actionTarget.closest('.form-row').remove(); updateNewProductTotalPercentage(); break;
+                case 'edit-mix': openMixEditor(mixId); break;
+                case 'delete-mix': deleteMix(mixId); break;
+                case 'close-modal': actionTarget.closest('.modal').classList.remove('active'); break;
+            }
+        }
+
+        function getDailyNeeds() {
+            const needs = {};
+            appState.suroviny.filter(s => !s.isMix).forEach(s => { needs[s.id] = 0; });
+
+            const dailyOrders = appState.orders.filter(o => o.date === appState.ui.selectedDate);
+
+            dailyOrders.forEach(order => {
+                order.items.forEach(item => {
+                    const surovina = appState.suroviny.find(s => s.id === item.surovinaId);
+                    if (!surovina) return;
+                    
+                    const boxWeightInGrams = appState.boxWeights[order.customerId]?.[surovina.id] || 0;
+                    const totalWeightInKg = item.boxCount * (boxWeightInGrams / 1000);
+
+                    if (surovina.isMix) {
+                        const components = item.ratioOverride || appState.mixDefinitions[surovina.id]?.components;
+                        if (components) {
+                            components.forEach(comp => {
+                                const grossWeight = totalWeightInKg * (comp.percentage / 100);
+                                const netWeight = grossWeight * (1 - ((comp.loss || 0) / 100));
+                                needs[comp.surovinaId] = (needs[comp.surovinaId] || 0) + netWeight;
+                            });
+                        }
+                    } else {
+                        needs[surovina.id] = (needs[surovina.id] || 0) + totalWeightInKg;
+                    }
+                });
+            });
+            return needs;
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function render() {
+            DOMElements.selectedDateInput.value = appState.ui.selectedDate;
+            DOMElements.views.forEach(v => v.classList.remove('active'));
+            DOMElements.navLinks.forEach(l => l.classList.remove('active'));
+            
+            const activeView = document.getElementById(`view-${appState.ui.activeView}`);
+            const activeLink = document.querySelector(`.nav-link[data-view="${appState.ui.activeView}"]`);
+            if (activeView) activeView.classList.add('active');
+            if (activeLink) activeLink.classList.add('active');
+
+            switch (appState.ui.activeView) {
+                case 'daily-plan': renderDailyPlan(); break;
+                case 'orders': renderOrders(); break;
+                case 'box-weights': renderBoxWeights(); break;
+                case 'create-mix': renderCreateMix(); break;
+                case 'palette-weights': renderPaletteWeights(); break;
+            }
+        }
+
+        function renderDailyPlan() {
+            const needs = getDailyNeeds();
+            const tbody = DOMElements.surovinyOverviewTableBody;
+            tbody.innerHTML = '';
+            appState.suroviny.filter(s => !s.isMix).forEach(s => {
+                const neededKg = needs[s.id] || 0;
+                const neededPalettes = s.paletteWeight > 0 ? (neededKg / s.paletteWeight) : 0;
+                const balancePalettes = (s.stock || 0) - neededPalettes;
+                
+                let balanceHtml = '';
+                if (balancePalettes < -0.01) { // Adding a small tolerance
+                    balanceHtml = `<span class="shortage">- ${Math.ceil(Math.abs(balancePalettes))}</span>`;
+                } else {
+                    balanceHtml = `<span class="surplus">+ ${Math.floor(balancePalettes)}</span>`;
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.name}</td>
+                    <td><input type="number" value="${s.stock || 0}" data-surovina-id="${s.id}" class="stock-input" style="width: 80px;"></td>
+                    <td>${neededKg.toFixed(2)} kg</td>
+                    <td>${balanceHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            tbody.querySelectorAll('.stock-input').forEach(input => {
+                input.addEventListener('change', e => {
+                    const surovina = appState.suroviny.find(s => s.id === e.target.dataset.surovinaId);
+                    if (surovina) surovina.stock = parseFloat(e.target.value) || 0;
+                    saveState();
+                    renderDailyPlan();
+                });
+            });
+        }
+
+        function renderOrders() {
+            const accordion = DOMElements.ordersAccordion;
+            accordion.innerHTML = '';
+            appState.zakaznici.forEach(customer => {
+                const details = document.createElement('details');
+                details.innerHTML = `<summary>${customer.name}</summary><div class="details-content"></div>`;
+                const content = details.querySelector('.details-content');
+                
+                const customerOrders = appState.orders.filter(o => o.customerId === customer.id && o.date === appState.ui.selectedDate);
+                const table = document.createElement('table');
+                table.className = 'data-table';
+                table.innerHTML = `<thead><tr><th>Produkt</th><th>Počet beden</th><th>Akce</th></tr></thead><tbody></tbody>`;
+                const tbody = table.querySelector('tbody');
+
+                customerOrders.forEach(order => {
+                    order.items.forEach(item => {
+                        const surovina = appState.suroviny.find(s => s.id === item.surovinaId);
+                        if (!surovina) return;
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${surovina.name}</td>
+                            <td><input type="number" value="${item.boxCount}" data-order-id="${order.id}" data-item-id="${item.id}" class="order-box-count-input" style="width: 80px;"></td>
+                            <td class="actions">
+                                ${surovina.isMix ? `<button class="btn btn-primary" data-action="edit-mix-ratio" data-order-id="${order.id}" data-item-id="${item.id}">Poměr</button>` : ''}
+                                <button class="btn-icon danger" data-action="delete-order-item" data-order-id="${order.id}" data-item-id="${item.id}">${ICONS.trash}</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                });
+                
+                content.appendChild(table);
+                const addBtn = document.createElement('button');
+                addBtn.className = 'btn btn-success';
+                addBtn.textContent = '+ Přidat položky';
+                addBtn.dataset.action = 'add-order-items';
+                addBtn.dataset.customerId = customer.id;
+                content.appendChild(addBtn);
+                accordion.appendChild(details);
+            });
+            
+            accordion.querySelectorAll('.order-box-count-input').forEach(input => {
+                input.addEventListener('change', e => {
+                    const order = appState.orders.find(o => o.id === e.target.dataset.orderId);
+                    const item = order?.items.find(i => i.id === e.target.dataset.itemId);
+                    if (item) item.boxCount = parseInt(e.target.value) || 0;
+                    saveState();
+                });
+            });
+        }
+
+        function renderBoxWeights() {
+            const accordion = DOMElements.boxWeightsAccordion;
+            accordion.innerHTML = '';
+            appState.zakaznici.forEach(customer => {
+                const details = document.createElement('details');
+                details.innerHTML = `<summary>${customer.name}</summary><div class="details-content"></div>`;
+                const content = details.querySelector('.details-content');
+                const table = document.createElement('table');
+                table.className = 'data-table';
+                table.innerHTML = `<thead><tr><th>Produkt</th><th>Váha bedny (g)</th></tr></thead><tbody></tbody>`;
+                const tbody = table.querySelector('tbody');
+
+                appState.suroviny.forEach(surovina => {
+                    const weight = appState.boxWeights[customer.id]?.[surovina.id] || 0;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${surovina.name}</td>
+                        <td><input type="number" value="${weight}" data-customer-id="${customer.id}" data-surovina-id="${surovina.id}" class="box-weight-input" style="width: 100px;"></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                content.appendChild(table);
+                accordion.appendChild(details);
+            });
+        }
+
+        function renderCreateMix() {
+            cancelEditMix(); // Reset form
+            renderExistingMixes();
+        }
+
+        function renderPaletteWeights() {
+            const tbody = DOMElements.paletteWeightsTableBody;
+            tbody.innerHTML = '';
+            appState.suroviny.filter(s => !s.isMix).forEach(surovina => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${surovina.name}</td>
+                    <td><input type="number" value="${surovina.paletteWeight || 500}" data-surovina-id="${surovina.id}" class="palette-weight-input" style="width: 120px;"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function renderNewProductComponents(addComponent = false, components = []) {
+            const container = DOMElements.newProductComponents;
+            if (!addComponent) {
+                container.innerHTML = '';
+            }
+            
+            const renderRow = (component = {}) => {
+                const row = document.createElement('div');
+                row.className = 'form-row';
+                const rawMaterials = appState.suroviny.filter(s => !s.isMix);
+                row.innerHTML = `
+                    <div class="form-field" style="flex: 2;">
+                        <label>Surovina</label>
+                        <select class="new-product-component-surovina">${rawMaterials.map(s => `<option value="${s.id}" ${component.surovinaId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}</select>
+                    </div>
+                    <div class="form-field">
+                        <label>Podíl (%)</label>
+                        <input type="number" class="new-product-component-percentage" value="${component.percentage || 0}" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="form-field">
+                        <label>Ztráta (%)</label>
+                        <input type="number" class="new-product-component-loss" value="${component.loss || 0}" min="0" max="100" step="0.1">
+                    </div>
+                    <button class="btn-icon danger" data-action="delete-new-product-component">${ICONS.trash}</button>
+                `;
+                container.appendChild(row);
+            };
+
+            if (addComponent) {
+                renderRow();
+            } else {
+                if (components.length > 0) {
+                    components.forEach(renderRow);
+                } else {
+                    renderRow(); // Start with one empty row
+                }
+            }
+            
+            container.querySelectorAll('.new-product-component-percentage').forEach(input => {
+                input.addEventListener('input', updateNewProductTotalPercentage);
+            });
+            updateNewProductTotalPercentage();
+        }
+
+        function updateNewProductTotalPercentage() {
+            let total = 0;
+            document.querySelectorAll('.new-product-component-percentage').forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            const totalEl = DOMElements.newProductTotalPercentage;
+            totalEl.textContent = total.toFixed(1);
+            totalEl.style.color = Math.abs(total - 100) > 0.1 ? 'var(--accent-danger)' : 'var(--accent-success)';
+        }
+
+        function renderExistingMixes() {
+            const tbody = DOMElements.existingMixesTableBody;
+            if (!tbody) return; // Guard clause
+            tbody.innerHTML = '';
+            const mixes = appState.suroviny.filter(s => s.isMix);
+            mixes.forEach(mix => {
+                const mixDef = appState.mixDefinitions[mix.id];
+                const componentsString = mixDef.components.map(c => {
+                    const surovina = appState.suroviny.find(s => s.id === c.surovinaId);
+                    return `${surovina.name} (${c.percentage}%)`;
+                }).join(', ');
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${mix.name}</td>
+                    <td>${componentsString}</td>
+                    <td class="actions">
+                        <button class="btn-icon" data-action="edit-mix" data-mix-id="${mix.id}">${ICONS.edit}</button>
+                        <button class="btn-icon danger" data-action="delete-mix" data-mix-id="${mix.id}">${ICONS.trash}</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openMixEditor(mixId) {
+            const mix = appState.suroviny.find(s => s.id === mixId);
+            const mixDef = appState.mixDefinitions[mixId];
+            if (!mix || !mixDef) return;
+
+            appState.ui.editingMixId = mixId;
+            DOMElements.createMixHeader.textContent = `Upravit mix: ${mix.name}`;
+            DOMElements.newProductName.value = mix.name;
+            DOMElements.saveNewProductBtn.textContent = 'Uložit změny';
+            DOMElements.cancelEditMixBtn.style.display = 'inline-block';
+            
+            renderNewProductComponents(false, mixDef.components);
+            window.scrollTo(0, 0);
+        }
+
+        function cancelEditMix() {
+            appState.ui.editingMixId = null;
+            DOMElements.createMixHeader.textContent = 'Vytvořit nový mix';
+            DOMElements.newProductName.value = '';
+            DOMElements.saveNewProductBtn.textContent = 'Uložit mix';
+            DOMElements.cancelEditMixBtn.style.display = 'none';
+            renderNewProductComponents();
+        }
+
+        function deleteMix(mixId) {
+            if (confirm('Opravdu chcete smazat tento mix? Bude odstraněn i ze všech objednávek.')) {
+                appState.suroviny = appState.suroviny.filter(s => s.id !== mixId);
+                delete appState.mixDefinitions[mixId];
+                appState.orders.forEach(order => {
+                    order.items = order.items.filter(item => item.surovinaId !== mixId);
+                });
+                saveState();
+                renderCreateMix();
+                showToast('Mix smazán', 'error');
+            }
+        }
+
+        function openMixRatioModal(orderId, itemId) {
+            appState.ui.editingOrderItemId = itemId;
+            const order = appState.orders.find(o => o.id === orderId);
+            const item = order?.items.find(i => i.id === itemId);
+            const surovina = appState.suroviny.find(s => s.id === item.surovinaId);
+            if (!item || !surovina || !surovina.isMix) return;
+
+            DOMElements.mixRatioModalTitle.textContent = `Poměr pro: ${surovina.name}`;
+            const body = DOMElements.mixRatioModalBody;
+            body.innerHTML = '';
+            
+            const components = item.ratioOverride || appState.mixDefinitions[surovina.id].components;
+            components.forEach(comp => {
+                const compSurovina = appState.suroviny.find(s => s.id === comp.surovinaId);
+                const row = document.createElement('div');
+                row.className = 'form-row';
+                row.innerHTML = `
+                    <div class="form-field" style="flex: 3;"><label>${compSurovina.name}</label></div>
+                    <div class="form-field"><input type="number" class="mix-ratio-percentage" value="${comp.percentage}" data-surovina-id="${comp.surovinaId}" min="0" max="100"></div>
+                `;
+                body.appendChild(row);
+            });
+            DOMElements.mixRatioModal.classList.add('active');
+        }
+
+        function openAddOrderModal(customerId) {
+            appState.ui.addingToCustomerId = customerId;
+            const customer = appState.zakaznici.find(c => c.id === customerId);
+            DOMElements.addOrderModalTitle.textContent = `Přidat objednávku pro: ${customer.name}`;
+            const body = DOMElements.addOrderModalBody;
+            body.innerHTML = '';
+            
+            const table = document.createElement('table');
+            table.className = 'data-table';
+            table.innerHTML = `<thead><tr><th>Produkt</th><th>Počet beden</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            
+            appState.suroviny.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.name}</td>
+                    <td><input type="number" min="0" class="add-order-box-count" data-surovina-id="${s.id}" style="width: 100px;"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            body.appendChild(table);
+            DOMElements.addOrderModal.classList.add('active');
+        }
+
+        // --- SAVE & UPDATE FUNCTIONS ---
+        function saveAddedItems() {
+            const customerId = appState.ui.addingToCustomerId;
+            if (!customerId) return;
+
+            let order = appState.orders.find(o => o.customerId === customerId && o.date === appState.ui.selectedDate);
+            if (!order) {
+                order = { id: generateId(), date: appState.ui.selectedDate, customerId, items: [] };
+                appState.orders.push(order);
+            }
+            
+            document.querySelectorAll('.add-order-box-count').forEach(input => {
+                const boxCount = parseInt(input.value);
+                if (boxCount > 0) {
+                    const surovinaId = input.dataset.surovinaId;
+                    order.items.push({ id: generateId(), surovinaId, boxCount });
+                }
+            });
+
+            saveState();
+            renderOrders();
+            DOMElements.addOrderModal.classList.remove('active');
+            showToast('Položky přidány do objednávky');
+        }
+
+        function deleteOrderItem(orderId, itemId) {
+            const order = appState.orders.find(o => o.id === orderId);
+            if (order) {
+                order.items = order.items.filter(i => i.id !== itemId);
+                if (order.items.length === 0) {
+                    appState.orders = appState.orders.filter(o => o.id !== orderId);
+                }
+            }
+            saveState();
+            renderOrders();
+        }
+
+        function saveAllBoxWeights() {
+            document.querySelectorAll('.box-weight-input').forEach(input => {
+                const { customerId, surovinaId } = input.dataset;
+                if (!appState.boxWeights[customerId]) appState.boxWeights[customerId] = {};
+                appState.boxWeights[customerId][surovinaId] = parseFloat(input.value) || 0;
+            });
+            saveState();
+            showToast('Váhy beden uloženy');
+        }
+
+        function saveAllPaletteWeights() {
+            document.querySelectorAll('.palette-weight-input').forEach(input => {
+                const surovina = appState.suroviny.find(s => s.id === input.dataset.surovinaId);
+                if (surovina) surovina.paletteWeight = parseFloat(input.value) || 0;
+            });
+            saveState();
+            showToast('Váhy palet uloženy');
+        }
+
+        function saveNewProduct() {
+            const name = DOMElements.newProductName.value.trim().toUpperCase();
+            if (!name) { showToast('Zadejte název mixu.', 'error'); return; }
+
+            const isEditing = !!appState.ui.editingMixId;
+            if (!isEditing && appState.suroviny.some(s => s.name === name)) {
+                showToast('Produkt s tímto názvem již existuje.', 'error'); return;
+            }
+
+            const components = [];
+            let totalPercentage = 0;
+            document.querySelectorAll('#new-product-components .form-row').forEach(row => {
+                const select = row.querySelector('.new-product-component-surovina');
+                const percentageInput = row.querySelector('.new-product-component-percentage');
+                const lossInput = row.querySelector('.new-product-component-loss');
+                const percentage = parseFloat(percentageInput.value) || 0;
+                const loss = parseFloat(lossInput.value) || 0;
+                if (percentage > 0) {
+                    components.push({ surovinaId: select.value, percentage, loss });
+                    totalPercentage += percentage;
+                }
+            });
+
+            if (components.length === 0) { showToast('Mix musí mít alespoň jednu složku.', 'error'); return; }
+            if (Math.abs(totalPercentage - 100) > 0.1) { showToast('Součet podílů musí být 100%.', 'error'); return; }
+
+            if (isEditing) {
+                const mixProduct = appState.suroviny.find(s => s.id === appState.ui.editingMixId);
+                mixProduct.name = name;
+                appState.mixDefinitions[appState.ui.editingMixId].components = components;
+                showToast('Mix upraven');
+            } else {
+                const newMixId = generateId();
+                const newMixProduct = { id: newMixId, name, paletteWeight: 0, stock: 0, isMix: true };
+                appState.suroviny.push(newMixProduct);
+                appState.mixDefinitions[newMixId] = { components };
+                
+                appState.zakaznici.forEach(c => {
+                    if (!appState.boxWeights[c.id]) appState.boxWeights[c.id] = {};
+                    appState.boxWeights[c.id][newMixId] = 10000;
+                });
+                showToast('Nový mix uložen');
+            }
+
+            saveState();
+            cancelEditMix(); // Reset form
+            renderCreateMix();
+        }
+        
+        function saveMixRatio() {
+            const itemId = appState.ui.editingOrderItemId;
+            const order = appState.orders.find(o => o.items.some(i => i.id === itemId));
+            const item = order?.items.find(i => i.id === itemId);
+            if (!item) return;
+
+            const newRatios = [];
+            let total = 0;
+            document.querySelectorAll('#mix-ratio-modal-body .mix-ratio-percentage').forEach(input => {
+                const percentage = parseFloat(input.value) || 0;
+                total += percentage;
+                newRatios.push({ surovinaId: input.dataset.surovinaId, percentage });
+            });
+
+            if (Math.abs(total - 100) > 0.1) { showToast('Součet musí být 100%', 'error'); return; }
+
+            item.ratioOverride = newRatios;
+            saveState();
+            DOMElements.mixRatioModal.classList.remove('active');
+            showToast('Poměr pro objednávku upraven');
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            DOMElements.toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // --- INIT ---
+        loadState();
+        bindEvents();
+        render();
+    });
     </script>
 </body>
 </html>
