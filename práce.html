@@ -26,6 +26,10 @@
             --shift-morning: #f1c40f;
             --shift-afternoon: #e67e22;
             --shift-night: #34495e;
+            --event-vacation: #e74c3c;
+            --event-sickness: #9b59b6;
+            --event-departure: #7f8c8d;
+            --event-other: #1abc9c;
         }
 
         [data-theme="dark"] {
@@ -206,6 +210,11 @@
         }
         .pc-person-info { font-size: 0.9rem; }
         .pc-person-info small { color: var(--text-secondary); display: block; }
+        .pc-day-event-pill { font-size: 0.7rem; padding: 2px 4px; border-radius: 4px; color: white; margin-top: 4px; }
+        .pc-day-event-pill.vacation { background-color: var(--event-vacation); }
+        .pc-day-event-pill.sickness { background-color: var(--event-sickness); }
+        .pc-day-event-pill.departure { background-color: var(--event-departure); }
+        .pc-day-event-pill.other { background-color: var(--event-other); }
         
         /* Wheelchair Calendar */
         .wc-calendar-container { display: grid; grid-template-columns: 100px repeat(7, 1fr); gap: 1px; background-color: var(--border-color); border: 1px solid var(--border-color); }
@@ -299,7 +308,10 @@
         <div id="view-zamestnanci" class="page">
              <div class="page-header-container">
                 <h1 class="page-header" style="margin-bottom: 0;">Zaměstnanci</h1>
-                <button class="btn btn-primary" data-action="open-wheelchair-calendar">Vozíčkáři</button>
+                <div>
+                    <button class="btn btn-primary" data-action="pc-add-event">Událost</button>
+                    <button class="btn btn-primary" data-action="open-wheelchair-calendar">Vozíčkáři</button>
+                </div>
              </div>
              <div class="card">
                  <div class="calendar-toolbar">
@@ -554,7 +566,7 @@
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
                 <h2 class="modal-title">Seznam směn</h2>
-                <button class="btn btn-success" id="pc-add-person-btn" data-action="pc-add-person">Přidat osobu</button>
+                <button class="btn-icon" data-action="close-modal">&times;</button>
             </div>
             <div class="modal-body pc-shifts-container">
                 <div class="pc-shift-column">
@@ -566,8 +578,12 @@
                     <div id="pc-shift2-list"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn" data-action="close-modal">Zavřít</button>
+            <div class="modal-footer" style="justify-content: space-between; align-items: center;">
+                <div><strong>Celkem zaměstnanců: <span id="pc-total-count">0</span></strong></div>
+                <div>
+                    <button class="btn btn-primary" data-action="pc-show-work-placements">Pracovní umístění</button>
+                    <button class="btn" data-action="close-modal">Zavřít</button>
+                </div>
             </div>
         </div>
     </div>
@@ -602,6 +618,71 @@
             </div>
         </div>
     </div>
+    
+    <div id="pc-event-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="pc-event-modal-title">Přidat událost</h2>
+                <button class="btn-icon" data-action="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="pc-event-chip">Čip zaměstnance</label>
+                    <input type="text" id="pc-event-chip" list="pc-employee-chips" placeholder="Začněte psát čip nebo jméno...">
+                    <datalist id="pc-employee-chips"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="pc-event-type">Typ události</label>
+                    <select id="pc-event-type">
+                        <option value="vacation">Dovolená</option>
+                        <option value="sickness">Nemoc</option>
+                        <option value="departure">Odjezd</option>
+                        <option value="other">Další</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="pc-event-from">Datum od</label>
+                        <input type="date" id="pc-event-from">
+                    </div>
+                    <div class="form-field">
+                        <label for="pc-event-to">Datum do (nepovinné)</label>
+                        <input type="date" id="pc-event-to">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-action="close-modal">Zrušit</button>
+                <button class="btn btn-primary" id="pc-save-event-btn">Uložit událost</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pc-day-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="pc-day-details-title">Události dne</h2>
+                <button class="btn-icon" data-action="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="pc-day-details-body"></div>
+        </div>
+    </div>
+    
+    <div id="pc-work-placements-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Přehled pracovních umístění</h2>
+                <button class="btn-icon" data-action="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table class="data-table">
+                    <thead><tr><th>Pracovní místo</th><th>1. směna</th><th>2. směna</th></tr></thead>
+                    <tbody id="pc-work-placements-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Wheelchair Modals -->
     <div id="wc-user-modal" class="modal">
@@ -619,6 +700,14 @@
                     <div class="form-field"><label for="wc-user-chip">Čip</label><input type="text" id="wc-user-chip"></div>
                     <div class="form-field"><label for="wc-user-phone">Telefon (nepovinné)</label><input type="tel" id="wc-user-phone"></div>
                 </div>
+                 <div class="form-group">
+                    <label for="wc-user-start-shift">Počáteční směna</label>
+                    <select id="wc-user-start-shift">
+                        <option value="morning">Ranní</option>
+                        <option value="afternoon">Odpolední</option>
+                        <option value="night">Noční</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn" data-action="close-modal">Zrušit</button>
@@ -635,7 +724,7 @@
             </div>
             <div class="modal-body">
                 <table class="data-table">
-                    <thead><tr><th>Jméno</th><th>Čip</th><th>Telefon</th><th class="actions">Akce</th></tr></thead>
+                    <thead><tr><th>Jméno</th><th>Čip</th><th>Akce</th></tr></thead>
                     <tbody id="wc-user-list-tbody"></tbody>
                 </table>
             </div>
@@ -755,6 +844,7 @@
             wcUserLastName: document.getElementById('wc-user-lastname'),
             wcUserChip: document.getElementById('wc-user-chip'),
             wcUserPhone: document.getElementById('wc-user-phone'),
+            wcUserStartShift: document.getElementById('wc-user-start-shift'),
             wcSaveUserBtn: document.getElementById('wc-save-user-btn'),
             wcUserListModal: document.getElementById('wc-user-list-modal'),
             wcUserListTbody: document.getElementById('wc-user-list-tbody'),
@@ -764,7 +854,7 @@
         function generateId() { return crypto.randomUUID(); }
 
         function loadState() {
-            const savedState = localStorage.getItem('surovinyAppData_v12');
+            const savedState = localStorage.getItem('surovinyAppData_v13');
             if (savedState) {
                 appState = JSON.parse(savedState);
             } else {
@@ -790,13 +880,14 @@
                     week: getWeekNumber(today),
                 },
                 editingWcUserId: null,
+                editingPcEventId: null,
             };
         }
 
         function saveState() {
             const stateToSave = { ...appState };
             delete stateToSave.ui; 
-            localStorage.setItem('surovinyAppData_v12', JSON.stringify(stateToSave));
+            localStorage.setItem('surovinyAppData_v13', JSON.stringify(stateToSave));
         }
 
         function setupDefaultData() {
@@ -893,10 +984,18 @@
                 case 'wc-edit-user': wcOpenUserModal(id); break;
                 case 'wc-delete-user': wcDeleteUser(id); break;
                 case 'wc-show-user-list': wcOpenUserListModal(); break;
+                case 'wc-set-vacation': wcSetUserVacation(id); break;
+                case 'wc-set-shift': wcSetUserShiftForWeek(id, actionTarget.dataset.shift); break;
                 case 'close-modal': actionTarget.closest('.modal').classList.remove('active'); break;
+                // People Calendar Actions
                 case 'pc-add-person': initPeopleCalendar(); pcOpenPersonModal(); break;
                 case 'pc-edit-person': initPeopleCalendar(); pcOpenPersonModal(id); break;
                 case 'pc-delete-person': initPeopleCalendar(); pcDeletePerson(id); break;
+                case 'pc-add-event': initPeopleCalendar(); pcOpenEventModal(); break;
+                case 'pc-edit-event': initPeopleCalendar(); pcOpenEventModal(id); break;
+                case 'pc-delete-event': initPeopleCalendar(); pcDeleteEvent(id); break;
+                case 'pc-open-day-details': initPeopleCalendar(); pcOpenDayDetailsModal(actionTarget.dataset.date); break;
+                case 'pc-show-work-placements': initPeopleCalendar(); pcOpenWorkPlacementsModal(); break;
             }
         }
 
@@ -1939,7 +2038,10 @@
         const workPositions = ['bizzerba', 'řízky pas', 'dočistování', 'robot', 'icut', 'maykawa', 'manipulant', 'mleté maso', 'lima', 'kfc', 'špízy', 'nezařazené'];
 
         function initPeopleCalendar() {
-            if (peopleCalendarInitialized) return;
+            if (peopleCalendarInitialized) {
+                pcRenderCalendar(); // Always re-render if already initialized
+                return;
+            }
             peopleCalendarInitialized = true;
 
             pcDOMElements = {
@@ -1956,6 +2058,7 @@
                 shift2List: document.getElementById('pc-shift2-list'),
                 shift1Count: document.getElementById('pc-shift1-count'),
                 shift2Count: document.getElementById('pc-shift2-count'),
+                totalCount: document.getElementById('pc-total-count'),
                 personForm: {
                     firstName: document.getElementById('pc-person-firstname'),
                     lastName: document.getElementById('pc-person-lastname'),
@@ -1964,15 +2067,30 @@
                     shift: document.getElementById('pc-person-shift'),
                     gender: document.getElementById('pc-person-gender'),
                     position: document.getElementById('pc-person-position'),
-                }
+                },
+                eventModal: document.getElementById('pc-event-modal'),
+                eventModalTitle: document.getElementById('pc-event-modal-title'),
+                eventChip: document.getElementById('pc-event-chip'),
+                employeeChipsDatalist: document.getElementById('pc-employee-chips'),
+                eventType: document.getElementById('pc-event-type'),
+                eventFrom: document.getElementById('pc-event-from'),
+                eventTo: document.getElementById('pc-event-to'),
+                saveEventBtn: document.getElementById('pc-save-event-btn'),
+                dayDetailsModal: document.getElementById('pc-day-details-modal'),
+                dayDetailsTitle: document.getElementById('pc-day-details-title'),
+                dayDetailsBody: document.getElementById('pc-day-details-body'),
+                workPlacementsModal: document.getElementById('pc-work-placements-modal'),
+                workPlacementsTbody: document.getElementById('pc-work-placements-tbody'),
             };
 
             pcState = {
                 people: [],
+                events: [],
                 ui: {
                     year: new Date().getFullYear(),
                     month: new Date().getMonth(),
                     editingPersonId: null,
+                    editingEventId: null,
                 }
             };
             
@@ -1980,19 +2098,21 @@
             pcDOMElements.nextBtn.onclick = () => { pcState.ui.month++; if(pcState.ui.month > 11) { pcState.ui.month = 0; pcState.ui.year++; } pcRenderCalendar(); };
             pcDOMElements.showShiftsBtn.onclick = pcShowShiftsModal;
             pcDOMElements.savePersonBtn.onclick = pcSavePerson;
+            pcDOMElements.saveEventBtn.onclick = pcSaveEvent;
 
             pcLoadState();
             pcRenderCalendar();
         }
 
         function pcSaveState() {
-            localStorage.setItem('peopleCalendarData_v3', JSON.stringify({ people: pcState.people }));
+            localStorage.setItem('peopleCalendarData_v4', JSON.stringify({ people: pcState.people, events: pcState.events }));
         }
 
         function pcLoadState() {
-            const data = JSON.parse(localStorage.getItem('peopleCalendarData_v3'));
-            if (data && data.people) {
-                pcState.people = data.people;
+            const data = JSON.parse(localStorage.getItem('peopleCalendarData_v4'));
+            if (data) {
+                pcState.people = data.people || [];
+                pcState.events = data.events || [];
             }
         }
 
@@ -2017,7 +2137,30 @@
                     if (currentDate.getMonth() !== month) {
                         dayCell.style.opacity = '0.5';
                     }
-                    dayCell.innerHTML = `<div class="day-number">${currentDate.getDate()}</div>`;
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    dayCell.dataset.date = dateStr;
+                    
+                    const dayEvents = pcState.events.filter(e => {
+                        const eventStart = new Date(e.dateFrom);
+                        const eventEnd = e.dateTo ? new Date(e.dateTo) : eventStart;
+                        const currentDay = new Date(dateStr);
+                        return currentDay >= eventStart && currentDay <= eventEnd;
+                    });
+
+                    if (dayEvents.length > 0) {
+                        dayCell.dataset.action = 'pc-open-day-details';
+                    }
+
+                    dayCell.innerHTML = `<div class="day-number">${currentDate.getDate()}</div><div class="day-items"></div>`;
+                    const itemsDiv = dayCell.querySelector('.day-items');
+                    dayEvents.forEach(event => {
+                        const person = pcState.people.find(p => p.chip === event.chip);
+                        const pill = document.createElement('div');
+                        pill.className = `pc-day-event-pill ${event.type}`;
+                        pill.textContent = person ? `${person.lastName}` : event.chip;
+                        itemsDiv.appendChild(pill);
+                    });
+
                     grid.appendChild(dayCell);
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
@@ -2025,7 +2168,7 @@
         }
         
         function pcShowShiftsModal() {
-            const { shift1List, shift2List, shift1Count, shift2Count } = pcDOMElements;
+            const { shift1List, shift2List, shift1Count, shift2Count, totalCount } = pcDOMElements;
             shift1List.innerHTML = '';
             shift2List.innerHTML = '';
             
@@ -2034,6 +2177,7 @@
 
             shift1Count.textContent = shift1.length;
             shift2Count.textContent = shift2.length;
+            totalCount.textContent = pcState.people.length;
 
             shift1.forEach(p => shift1List.innerHTML += createPersonItemHTML(p));
             shift2.forEach(p => shift2List.innerHTML += createPersonItemHTML(p));
@@ -2118,6 +2262,133 @@
                 pcShowShiftsModal();
                 showToast('Osoba smazána', 'success');
             });
+        }
+        
+        function pcOpenEventModal(eventId = null) {
+            pcState.ui.editingEventId = eventId;
+            const { eventModal, eventModalTitle, eventChip, employeeChipsDatalist, eventType, eventFrom, eventTo } = pcDOMElements;
+            
+            employeeChipsDatalist.innerHTML = pcState.people.map(p => `<option value="${p.chip}">${p.firstName} ${p.lastName}</option>`).join('');
+
+            if (eventId) {
+                const event = pcState.events.find(e => e.id === eventId);
+                if (event) {
+                    eventModalTitle.textContent = 'Upravit událost';
+                    eventChip.value = event.chip;
+                    eventType.value = event.type;
+                    eventFrom.value = event.dateFrom;
+                    eventTo.value = event.dateTo || '';
+                }
+            } else {
+                eventModalTitle.textContent = 'Přidat událost';
+                eventChip.value = '';
+                eventType.value = 'vacation';
+                eventFrom.value = new Date().toISOString().split('T')[0];
+                eventTo.value = '';
+            }
+            eventModal.classList.add('active');
+        }
+        
+        function pcSaveEvent() {
+            const { eventChip, eventType, eventFrom, eventTo } = pcDOMElements;
+            const chip = eventChip.value;
+            const personExists = pcState.people.some(p => p.chip === chip);
+            if (!personExists) {
+                showToast('Zaměstnanec s tímto čipem neexistuje.', 'error');
+                return;
+            }
+            if (!eventFrom.value) {
+                showToast('Datum "od" je povinné.', 'error');
+                return;
+            }
+            
+            const eventData = {
+                chip,
+                type: eventType.value,
+                dateFrom: eventFrom.value,
+                dateTo: eventTo.value || null,
+            };
+
+            if (pcState.ui.editingEventId) {
+                const index = pcState.events.findIndex(e => e.id === pcState.ui.editingEventId);
+                pcState.events[index] = { ...pcState.events[index], ...eventData };
+            } else {
+                pcState.events.push({ id: generateId(), ...eventData });
+            }
+            
+            pcSaveState();
+            pcRenderCalendar();
+            pcDOMElements.eventModal.classList.remove('active');
+            showToast('Událost uložena');
+        }
+        
+        function pcDeleteEvent(eventId) {
+             showConfirmation('Opravdu chcete smazat tuto událost?', () => {
+                pcState.events = pcState.events.filter(e => e.id !== eventId);
+                pcSaveState();
+                pcRenderCalendar();
+                pcDOMElements.dayDetailsModal.classList.remove('active');
+                showToast('Událost smazána');
+             });
+        }
+        
+        function pcOpenDayDetailsModal(date) {
+            const { dayDetailsModal, dayDetailsTitle, dayDetailsBody } = pcDOMElements;
+            dayDetailsTitle.textContent = `Události ${new Date(date).toLocaleDateString('cs-CZ')}`;
+            dayDetailsBody.innerHTML = '';
+            
+            const dayEvents = pcState.events.filter(e => {
+                const eventStart = new Date(e.dateFrom);
+                const eventEnd = e.dateTo ? new Date(e.dateTo) : eventStart;
+                const currentDay = new Date(date);
+                return currentDay >= eventStart && currentDay <= eventEnd;
+            });
+
+            if (dayEvents.length === 0) {
+                dayDetailsBody.innerHTML = '<p>Pro tento den nejsou žádné události.</p>';
+            } else {
+                dayEvents.forEach(event => {
+                    const person = pcState.people.find(p => p.chip === event.chip);
+                    dayDetailsBody.innerHTML += `
+                        <div class="card" style="padding: 10px; margin-bottom: 10px;">
+                            <strong>${person ? `${person.firstName} ${person.lastName}` : event.chip}</strong> - ${event.type}
+                            <div class="actions" style="float: right;">
+                                <button class="btn-icon" data-action="pc-edit-event" data-id="${event.id}">${ICONS.edit}</button>
+                                <button class="btn-icon danger" data-action="pc-delete-event" data-id="${event.id}">${ICONS.trash}</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            dayDetailsModal.classList.add('active');
+        }
+        
+        function pcOpenWorkPlacementsModal() {
+            const { workPlacementsModal, workPlacementsTbody } = pcDOMElements;
+            workPlacementsTbody.innerHTML = '';
+            
+            const counts = {};
+            workPositions.forEach(pos => {
+                counts[pos] = { '1': 0, '2': 0 };
+            });
+
+            pcState.people.forEach(person => {
+                if (counts[person.position]) {
+                    counts[person.position][person.shift]++;
+                }
+            });
+
+            workPositions.forEach(pos => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${pos.charAt(0).toUpperCase() + pos.slice(1)}</td>
+                    <td>${counts[pos]['1']}</td>
+                    <td>${counts[pos]['2']}</td>
+                `;
+                workPlacementsTbody.appendChild(tr);
+            });
+
+            workPlacementsModal.classList.add('active');
         }
         
         // --- WHEELCHAIR CALENDAR SCRIPT ---
@@ -2267,8 +2538,6 @@
                 }
             } else { // Default assignment for the first time
                 const users = [...appState.wheelchairUsers];
-                const shifts = ['morning', 'afternoon', 'night'];
-                let shiftIndex = 0;
                 
                 for (let i = 0; i < 7; i++) {
                     const day = new Date(startDate);
@@ -2278,15 +2547,13 @@
                 }
 
                 users.forEach(user => {
-                    const shift = shifts[shiftIndex % 3];
-                    // Assign to all days of the week in the same shift
+                    const shift = user.startShift || 'morning';
                     for (let i = 0; i < 7; i++) {
                          const day = new Date(startDate);
                          day.setDate(day.getDate() + i);
                          const dateKey = day.toISOString().split('T')[0];
                          newSchedule[dateKey][shift].push(user.id);
                     }
-                    shiftIndex++;
                 });
             }
             appState.wheelchairSchedule[weekKey] = newSchedule;
@@ -2304,7 +2571,7 @@
         
         function wcOpenUserModal(userId = null) {
             appState.ui.editingWcUserId = userId;
-            const { wcUserModal, wcUserModalTitle, wcUserFirstName, wcUserLastName, wcUserChip, wcUserPhone } = DOMElements;
+            const { wcUserModal, wcUserModalTitle, wcUserFirstName, wcUserLastName, wcUserChip, wcUserPhone, wcUserStartShift } = DOMElements;
             if (userId) {
                 const user = appState.wheelchairUsers.find(u => u.id === userId);
                 if (user) {
@@ -2313,6 +2580,7 @@
                     wcUserLastName.value = user.lastName;
                     wcUserChip.value = user.chip;
                     wcUserPhone.value = user.phone;
+                    wcUserStartShift.value = user.startShift || 'morning';
                 }
             } else {
                 wcUserModalTitle.textContent = 'Přidat vozíčkáře';
@@ -2320,12 +2588,13 @@
                 wcUserLastName.value = '';
                 wcUserChip.value = '';
                 wcUserPhone.value = '';
+                wcUserStartShift.value = 'morning';
             }
             wcUserModal.classList.add('active');
         }
 
         function wcSaveUser() {
-            const { wcUserFirstName, wcUserLastName, wcUserChip, wcUserPhone } = DOMElements;
+            const { wcUserFirstName, wcUserLastName, wcUserChip, wcUserPhone, wcUserStartShift } = DOMElements;
             const firstName = wcUserFirstName.value.trim();
             const lastName = wcUserLastName.value.trim();
             const chip = wcUserChip.value.trim();
@@ -2335,7 +2604,9 @@
             }
             
             const userData = {
-                firstName, lastName, chip, phone: wcUserPhone.value.trim()
+                firstName, lastName, chip, 
+                phone: wcUserPhone.value.trim(),
+                startShift: wcUserStartShift.value
             };
 
             if (appState.ui.editingWcUserId) {
@@ -2385,8 +2656,11 @@
                 tr.innerHTML = `
                     <td>${user.firstName} ${user.lastName}</td>
                     <td>${user.chip}</td>
-                    <td>${user.phone}</td>
                     <td class="actions">
+                        <button class="btn" data-action="wc-set-vacation" data-id="${user.id}" style="--accent-primary: var(--event-vacation); --accent-primary-hover: var(--accent-danger-hover);">Dovolená</button>
+                        <button class="btn" data-action="wc-set-shift" data-shift="morning" data-id="${user.id}" style="--accent-primary: var(--shift-morning); --accent-primary-hover: #dab10d;">Ranní</button>
+                        <button class="btn" data-action="wc-set-shift" data-shift="afternoon" data-id="${user.id}" style="--accent-primary: var(--shift-afternoon); --accent-primary-hover: #ca6f1e;">Odp.</button>
+                        <button class="btn" data-action="wc-set-shift" data-shift="night" data-id="${user.id}" style="--accent-primary: var(--shift-night); --accent-primary-hover: #2c3e50;">Noční</button>
                         <button class="btn-icon" data-action="wc-edit-user" data-id="${user.id}">${ICONS.edit}</button>
                         <button class="btn-icon danger" data-action="wc-delete-user" data-id="${user.id}">${ICONS.trash}</button>
                     </td>
@@ -2394,6 +2668,34 @@
                 tbody.appendChild(tr);
             });
             DOMElements.wcUserListModal.classList.add('active');
+        }
+        
+        function wcSetUserShiftForWeek(userId, shift) {
+            const { year, week } = appState.ui.wheelchairCalendar;
+            const weekKey = `${year}-${week.toString().padStart(2, '0')}`;
+            const schedule = appState.wheelchairSchedule[weekKey];
+            if (!schedule) return;
+            
+            // Remove user from all shifts this week
+            Object.keys(schedule).forEach(dateKey => {
+                schedule[dateKey].morning = schedule[dateKey].morning.filter(id => id !== userId);
+                schedule[dateKey].afternoon = schedule[dateKey].afternoon.filter(id => id !== userId);
+                schedule[dateKey].night = schedule[dateKey].night.filter(id => id !== userId);
+                schedule[dateKey].vacation = schedule[dateKey].vacation.filter(id => id !== userId);
+            });
+            
+            // Add to the new shift for all days this week
+            Object.keys(schedule).forEach(dateKey => {
+                schedule[dateKey][shift].push(userId);
+            });
+            
+            saveState();
+            renderWheelchairCalendar();
+            showToast('Směna na celý týden nastavena.');
+        }
+
+        function wcSetUserVacation(userId) {
+            wcSetUserShiftForWeek(userId, 'vacation');
         }
 
         // --- APP INITIALIZATION ---
