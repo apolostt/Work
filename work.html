@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="cs" data-theme="light">
 <head>
@@ -65,7 +64,7 @@
         }
 
         .nav-header { font-size: 1.5rem; font-weight: 700; margin-bottom: 30px; }
-        .nav-links a {
+        .nav-links a, .nav-links summary {
             display: flex;
             align-items: center;
             padding: 12px 15px;
@@ -75,10 +74,23 @@
             border-radius: 8px;
             margin-bottom: 8px;
             transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
         }
         .nav-links a.active { background-color: var(--accent-primary); color: white; }
-        .nav-links a:not(.active):hover { background-color: var(--bg-tertiary); color: var(--text-primary); }
-        .nav-links a svg { margin-right: 12px; }
+        .nav-links a:not(.active):hover, .nav-links summary:hover { background-color: var(--bg-tertiary); color: var(--text-primary); }
+        .nav-links details[open] summary { background-color: var(--bg-tertiary); }
+        .nav-links .submenu a { padding-left: 42px; font-size: 0.9em; margin-bottom: 4px; }
+        .nav-links summary { list-style: none; }
+        .nav-links summary::-webkit-details-marker { display: none; }
+        .nav-links summary::after {
+            content: '▶';
+            font-size: 0.6em;
+            margin-left: auto;
+            transition: transform 0.2s;
+        }
+        .nav-links details[open] summary::after { transform: rotate(90deg); }
+
+
         .nav-footer { margin-top: auto; }
 
         .form-group { margin-bottom: 20px; }
@@ -162,7 +174,7 @@
 
         /* Calendar Styles */
         .calendar-toolbar { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        #current-month-display { font-size: 1.5rem; font-weight: 600; text-align: center; flex-grow: 1; }
+        #current-month-display, #pc-current-month-display { font-size: 1.5rem; font-weight: 600; text-align: center; flex-grow: 1; }
         .calendar-grid { display: grid; grid-template-columns: 50px repeat(7, 1fr); gap: 5px; }
         .calendar-header { text-align: center; font-weight: 600; color: var(--text-secondary); padding-bottom: 10px; }
         .week-number { font-weight: bold; color: var(--accent-primary); display: flex; align-items: center; justify-content: center; }
@@ -174,41 +186,19 @@
         .day-pill.is-order { background-color: var(--accent-success); }
         
         /* People Calendar Specific Styles */
-        #people-calendar-container {
-            --primary:#0d6efd;
-            --radius:8px;
+        .pc-shifts-container { display: flex; gap: 20px; }
+        .pc-shift-column { flex: 1; }
+        .pc-person-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: var(--bg-tertiary);
+            border-radius: 6px;
+            margin-bottom: 8px;
         }
-        #people-calendar-container .stats{display:flex;gap:14px;justify-content:center;margin-bottom:20px}
-        #people-calendar-container .stat{flex:1 1 120px;background:var(--bg-secondary);padding:10px;border-radius:var(--radius);text-align:center;box-shadow:var(--shadow)}
-        #people-calendar-container .stat h3{margin-bottom:4px;font-size:14px}
-        #people-calendar-container .month-bar{display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:14px}
-        #people-calendar-container .month-bar button{background:var(--accent-primary);color:#fff;border:0;border-radius:var(--radius);padding:6px 10px;font-weight:600;cursor:pointer}
-        #people-calendar-container .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-        #people-calendar-container .dow, #people-calendar-container .day{border:1px solid var(--border-color);background:var(--bg-secondary);min-height:80px;display:flex;flex-direction:column}
-        #people-calendar-container .dow{background:var(--bg-tertiary);align-items:center;justify-content:center;font-weight:700;min-height:30px}
-        #people-calendar-container .day.disabled{background:var(--bg-tertiary)}
-        #people-calendar-container .day span.date{font-size:12px;font-weight:600;padding:4px}
-        #people-calendar-container .day .tags{font-size:12px;line-height:1.2;padding:2px 4px}
-        #people-calendar-container .weekend{background:var(--bg-tertiary)}
-        #people-calendar-container .buttons {display: flex; justify-content: space-between; margin-bottom: 10px;}
-        #people-calendar-container .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1001}
-        #people-calendar-container .modal{background:var(--bg-secondary);padding:20px;border-radius:var(--radius);width:90%;max-width:800px}
-        #people-calendar-container .modal label{display:block;margin:8px 0 2px;font-size:14px;font-weight:600}
-        #people-calendar-container .modal input,#people-calendar-container .modal select{width:100%;padding:6px;border:1px solid var(--border-color);border-radius:6px;font-size:14px; background: var(--bg-secondary); color: var(--text-primary)}
-        #people-calendar-container .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
-        #people-calendar-container .actions button{border:0;border-radius:var(--radius);padding:6px 12px;font-weight:600;cursor:pointer}
-        #people-calendar-container .cancel{background:#6c757d;color:#fff}
-        #people-calendar-container .save{background:var(--accent-primary);color:#fff}
-        #people-calendar-container .summary{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
-        #people-calendar-container .post{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:6px 10px;font-size:13px}
-        #people-calendar-container .event-item {display: flex; justify-content: space-between; align-items: center; margin: 8px 0; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px;}
-        #people-calendar-container .event-item button {padding: 4px 8px; font-size: 12px; border: 0; border-radius: 4px; cursor: pointer; background: var(--accent-primary); color: #fff;}
-        #people-calendar-container .people-modal .shifts{display:flex;gap:20px}
-        #people-calendar-container .people-modal .shift{flex:1}
-        #people-calendar-container .people-modal .person-item{display:flex;justify-content:space-between;align-items:center;margin:8px 0;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px}
-        #people-calendar-container .people-modal .person-item button{padding:4px 8px;font-size:12px;border:0;border-radius:4px;cursor:pointer}
-        #people-calendar-container .people-modal .person-item button.edit{background:var(--accent-primary);color:#fff;margin-right:4px}
-        #people-calendar-container .people-modal .person-item button.delete{background:var(--accent-danger);color:#fff}
+        .pc-person-info { font-size: 0.9rem; }
+        .pc-person-info small { color: var(--text-secondary); display: block; }
     </style>
 </head>
 <body>
@@ -220,10 +210,18 @@
                 <a href="#" class="nav-link active" data-view="daily-plan"><span>Denní Plán</span></a>
                 <a href="#" class="nav-link" data-view="orders"><span>Objednávky</span></a>
                 <a href="#" class="nav-link" data-view="calendar"><span>Kalendář akcí</span></a>
-                <a href="#" class="nav-link" data-view="people-calendar"><span>Kalendář lidí</span></a>
-                <a href="#" class="nav-link" data-view="box-weights"><span>Váhy beden</span></a>
-                <a href="#" class="nav-link" data-view="create-mix"><span>Vytvořit mix</span></a>
-                <a href="#" class="nav-link" data-view="palette-weights"><span>Váhy palet</span></a>
+                <a href="#" class="nav-link" data-view="zamestnanci"><span>Zaměstnanci</span></a>
+                <a href="#" class="nav-link" data-view="kfc"><span>KFC</span></a>
+                <a href="#" class="nav-link" data-view="zmeny"><span>Změny</span></a>
+                <details>
+                    <summary>Nastavení</summary>
+                    <div class="submenu">
+                        <a href="#" class="nav-link" data-view="create-product"><span>Vytvořit produkt</span></a>
+                        <a href="#" class="nav-link" data-view="create-mix"><span>Vytvořit mix</span></a>
+                        <a href="#" class="nav-link" data-view="box-weights"><span>Váhy beden</span></a>
+                        <a href="#" class="nav-link" data-view="palette-weights"><span>Váhy palet</span></a>
+                    </div>
+                </details>
             </div>
         </div>
         <div class="nav-footer">
@@ -245,6 +243,12 @@
                         <thead><tr><th>Surovina</th><th>Skladem (palet)</th><th>Potřeba (kg)</th><th>Chybí / Přebývá (palet)</th><th>Následující den (kg)</th></tr></thead>
                         <tbody></tbody>
                     </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Kalibr</h2></div>
+                <div class="card-content" id="kalibr-table-container">
+                    <!-- Kalibr table will be rendered here -->
                 </div>
             </div>
         </div>
@@ -271,10 +275,17 @@
             </div>
         </div>
         
-        <!-- 4. Kalendář lidí View -->
-        <div id="view-people-calendar" class="page">
-             <div id="people-calendar-container">
-                <!-- Injected HTML from user file -->
+        <!-- 4. Zaměstnanci View -->
+        <div id="view-zamestnanci" class="page">
+             <h1 class="page-header">Zaměstnanci</h1>
+             <div class="card">
+                 <div class="calendar-toolbar">
+                     <button id="pc-prev-month-btn" class="btn btn-primary">Předchozí</button>
+                     <div id="pc-current-month-display"></div>
+                     <button id="pc-next-month-btn" class="btn btn-primary">Další</button>
+                     <button id="pc-show-shifts-btn" class="btn btn-success">Seznam směn</button>
+                 </div>
+                 <div class="calendar-grid" id="pc-calendar-grid"></div>
              </div>
         </div>
 
@@ -328,6 +339,51 @@
                 </table>
                  <div style="text-align: right; margin-top: 20px;">
                     <button class="btn btn-primary" id="save-all-palette-weights-btn">Uložit všechny změny</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 8. KFC View -->
+        <div id="view-kfc" class="page">
+            <h1 class="page-header">KFC</h1>
+            <div class="card">
+                <p>Obsah pro sekci KFC.</p>
+            </div>
+        </div>
+        
+        <!-- 9. Změny View -->
+        <div id="view-zmeny" class="page">
+            <h1 class="page-header">Změny</h1>
+            <div class="card">
+                <p>Obsah pro sekci Změny.</p>
+            </div>
+        </div>
+        
+        <!-- 10. Vytvořit Produkt View -->
+        <div id="view-create-product" class="page">
+            <h1 class="page-header">Vytvořit nový produkt</h1>
+            <div class="card">
+                <div class="form-row">
+                    <div class="form-field"><label for="new-prod-name">Název produktu</label><input type="text" id="new-prod-name"></div>
+                    <div class="form-field"><label for="new-prod-customer">Zákazník</label><select id="new-prod-customer"></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field"><label for="new-prod-surovina">Surovina</label><select id="new-prod-surovina"></select></div>
+                    <div class="form-field"><label for="new-prod-box-weight">Váha bedny (g)</label><input type="number" id="new-prod-box-weight"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field"><label for="new-prod-marinade-name">Název marinády (nepovinné)</label><input type="text" id="new-prod-marinade-name"></div>
+                    <div class="form-field"><label for="new-prod-marinade-percent">Marináda % (nepovinné)</label><input type="number" id="new-prod-marinade-percent"></div>
+                    <div class="form-field"><label for="new-prod-loss-percent">Ztráta % (nepovinné)</label><input type="number" id="new-prod-loss-percent"></div>
+                </div>
+                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 20px 0;">
+                <h3>Kalibrace</h3>
+                 <div class="form-row">
+                    <div class="form-field"><label for="new-prod-calibrated-surovina">Kalibrovaná surovina</label><select id="new-prod-calibrated-surovina"></select></div>
+                    <div class="form-field"><label for="new-prod-calibrated-weight">Váha (g) od-do</label><input type="text" id="new-prod-calibrated-weight" placeholder="např. 80-100"></div>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-primary" id="save-new-prod-btn">Uložit produkt</button>
                 </div>
             </div>
         </div>
@@ -395,6 +451,61 @@
             <div class="modal-body" id="day-details-body"></div>
         </div>
     </div>
+    
+    <!-- People Calendar Modals -->
+    <div id="pc-shifts-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Seznam směn</h2>
+                <button class="btn btn-success" id="pc-add-person-btn">Přidat osobu</button>
+            </div>
+            <div class="modal-body pc-shifts-container">
+                <div class="pc-shift-column">
+                    <h3>1. směna (<span id="pc-shift1-count">0</span>)</h3>
+                    <div id="pc-shift1-list"></div>
+                </div>
+                <div class="pc-shift-column">
+                    <h3>2. směna (<span id="pc-shift2-count">0</span>)</h3>
+                    <div id="pc-shift2-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-action="close-modal">Zavřít</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pc-person-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="pc-person-modal-title">Přidat osobu</h2>
+                <button class="btn-icon" data-action="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-field"><label for="pc-person-firstname">Jméno</label><input type="text" id="pc-person-firstname"></div>
+                    <div class="form-field"><label for="pc-person-lastname">Příjmení</label><input type="text" id="pc-person-lastname"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field"><label for="pc-person-chip">Čip</label><input type="text" id="pc-person-chip"></div>
+                    <div class="form-field"><label for="pc-person-phone">Telefon (nepovinné)</label><input type="tel" id="pc-person-phone"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field"><label for="pc-person-shift">Směna</label><select id="pc-person-shift"><option value="1">1. směna</option><option value="2">2. směna</option></select></div>
+                    <div class="form-field"><label for="pc-person-gender">Pohlaví</label><select id="pc-person-gender"><option value="muz">Muž</option><option value="zena">Žena</option></select></div>
+                </div>
+                <div class="form-group">
+                    <label for="pc-person-position">Pracovní místo</label>
+                    <select id="pc-person-position"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-action="close-modal">Zrušit</button>
+                <button class="btn btn-primary" id="pc-save-person-btn">Uložit</button>
+            </div>
+        </div>
+    </div>
+
 
     <div id="toast-container"></div>
 
@@ -414,6 +525,7 @@
             views: document.querySelectorAll('.page'),
             selectedDateInput: document.getElementById('selectedDate'),
             surovinyOverviewTableBody: document.querySelector('#suroviny-overview-table tbody'),
+            kalibrTableContainer: document.getElementById('kalibr-table-container'),
             ordersAccordion: document.getElementById('orders-accordion'),
             calendarGrid: document.getElementById('calendar-grid'),
             currentMonthDisplay: document.getElementById('current-month-display'),
@@ -432,6 +544,17 @@
             existingMixesTableBody: document.querySelector('#existing-mixes-table tbody'),
             paletteWeightsTableBody: document.querySelector('#palette-weights-table tbody'),
             saveAllPaletteWeightsBtn: document.getElementById('save-all-palette-weights-btn'),
+            // New Product Form
+            newProdName: document.getElementById('new-prod-name'),
+            newProdCustomer: document.getElementById('new-prod-customer'),
+            newProdSurovina: document.getElementById('new-prod-surovina'),
+            newProdBoxWeight: document.getElementById('new-prod-box-weight'),
+            newProdMarinadeName: document.getElementById('new-prod-marinade-name'),
+            newProdMarinadePercent: document.getElementById('new-prod-marinade-percent'),
+            newProdLossPercent: document.getElementById('new-prod-loss-percent'),
+            newProdCalibratedSurovina: document.getElementById('new-prod-calibrated-surovina'),
+            newProdCalibratedWeight: document.getElementById('new-prod-calibrated-weight'),
+            saveNewProdBtn: document.getElementById('save-new-prod-btn'),
             // Modals
             mixRatioModal: document.getElementById('mix-ratio-modal'),
             mixRatioModalTitle: document.getElementById('mix-ratio-modal-title'),
@@ -458,7 +581,7 @@
         function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
 
         function loadState() {
-            const savedState = localStorage.getItem('surovinyAppData_v7');
+            const savedState = localStorage.getItem('surovinyAppData_v8');
             if (savedState) {
                 appState = JSON.parse(savedState);
             } else {
@@ -472,6 +595,7 @@
                 addingToCustomerId: null,
                 editingMixId: null,
                 editingActionId: null,
+                openAccordionId: null,
                 calendar: {
                     year: today.getFullYear(),
                     month: today.getMonth(), // 0-indexed
@@ -482,7 +606,7 @@
         function saveState() {
             const stateToSave = { ...appState };
             delete stateToSave.ui; 
-            localStorage.setItem('surovinyAppData_v7', JSON.stringify(stateToSave));
+            localStorage.setItem('surovinyAppData_v8', JSON.stringify(stateToSave));
         }
 
         function setupDefaultData() {
@@ -510,6 +634,7 @@
             appState.orders = []; // { id, date, customerId, items: [{id, surovinaId, boxCount, ratioOverride}] }
             appState.mixDefinitions = {}; // { mixId: { components: [{surovinaId, percentage, loss}] } }
             appState.plannedActions = []; // {id, customerId, surovinaId, startDate, endDate, dailyCounts: {'YYYY-MM-DD': count}}
+            appState.products = []; // {id, name, customerId, surovinaId, boxWeight, marinadeName, marinadePercent, lossPercent, calibratedSurovinaId, calibratedWeight}
         }
 
         function bindEvents() {
@@ -531,6 +656,7 @@
             DOMElements.saveAllPaletteWeightsBtn.addEventListener('click', saveAllPaletteWeights);
             DOMElements.saveMixRatioBtn.addEventListener('click', saveMixRatio);
             DOMElements.saveAddedItemsBtn.addEventListener('click', saveAddedItems);
+            DOMElements.saveNewProdBtn.addEventListener('click', saveNewProd);
             // Calendar
             DOMElements.prevMonthBtn.addEventListener('click', () => changeMonth(-1));
             DOMElements.nextMonthBtn.addEventListener('click', () => changeMonth(1));
@@ -607,22 +733,29 @@
 
         // --- RENDER FUNCTIONS ---
         function render() {
-            DOMElements.selectedDateInput.value = appState.ui.selectedDate;
-            DOMElements.views.forEach(v => v.classList.remove('active'));
             DOMElements.navLinks.forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(v => v.classList.remove('active'));
+            
+            const activeLink = document.querySelector(`.nav-link[data-view="${appState.ui.activeView}"]`);
+            if(activeLink) {
+                activeLink.classList.add('active');
+                const parentDetails = activeLink.closest('details');
+                if (parentDetails) parentDetails.open = true;
+            }
             
             const activeView = document.getElementById(`view-${appState.ui.activeView}`);
-            const activeLink = document.querySelector(`.nav-link[data-view="${appState.ui.activeView}"]`);
             if (activeView) activeView.classList.add('active');
-            if (activeLink) activeLink.classList.add('active');
+
+            DOMElements.selectedDateInput.value = appState.ui.selectedDate;
 
             switch (appState.ui.activeView) {
                 case 'daily-plan': renderDailyPlan(); break;
                 case 'orders': renderOrders(); break;
                 case 'calendar': renderCalendar(); break;
-                case 'people-calendar': initPeopleCalendar(); break;
+                case 'zamestnanci': initPeopleCalendar(); break;
                 case 'box-weights': renderBoxWeights(); break;
                 case 'create-mix': renderCreateMix(); break;
+                case 'create-product': renderCreateProduct(); break;
                 case 'palette-weights': renderPaletteWeights(); break;
             }
         }
@@ -665,6 +798,7 @@
                     renderDailyPlan();
                 });
             });
+            renderKalibrTable();
         }
 
         function renderOrders() {
@@ -672,6 +806,10 @@
             accordion.innerHTML = '';
             appState.zakaznici.forEach(customer => {
                 const details = document.createElement('details');
+                details.dataset.customerId = customer.id;
+                if(appState.ui.openAccordionId === customer.id) {
+                    details.open = true;
+                }
                 details.innerHTML = `<summary>${customer.name}</summary><div class="details-content"></div>`;
                 const content = details.querySelector('.details-content');
                 
@@ -714,6 +852,15 @@
                     const item = order?.items.find(i => i.id === e.target.dataset.itemId);
                     if (item) item.boxCount = parseInt(e.target.value) || 0;
                     saveState();
+                });
+            });
+            accordion.querySelectorAll('details').forEach(detail => {
+                detail.addEventListener('toggle', () => {
+                    if(detail.open) {
+                        appState.ui.openAccordionId = detail.dataset.customerId;
+                    } else if (appState.ui.openAccordionId === detail.dataset.customerId) {
+                        appState.ui.openAccordionId = null;
+                    }
                 });
             });
         }
@@ -998,7 +1145,31 @@
                 tbody.appendChild(tr);
             });
             body.appendChild(table);
+
+            const inputs = body.querySelectorAll('.add-order-box-count');
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (input.value === '') {
+                            input.value = 0;
+                        }
+                        const nextInput = inputs[index + 1];
+                        if (nextInput) {
+                            nextInput.focus();
+                            nextInput.select();
+                        } else {
+                            DOMElements.saveAddedItemsBtn.focus();
+                        }
+                    }
+                });
+            });
+
             DOMElements.addOrderModal.classList.add('active');
+            if(inputs[0]) {
+                inputs[0].focus();
+                inputs[0].select();
+            }
         }
         
         function openPlanActionModal(actionId = null) {
@@ -1111,7 +1282,8 @@
                     order.items.push({ id: generateId(), surovinaId, boxCount });
                 }
             });
-
+            
+            appState.ui.openAccordionId = customerId;
             saveState();
             renderOrders();
             DOMElements.addOrderModal.classList.remove('active');
@@ -1121,6 +1293,7 @@
         function deleteOrderItem(orderId, itemId) {
             const order = appState.orders.find(o => o.id === orderId);
             if (order) {
+                appState.ui.openAccordionId = order.customerId;
                 order.items = order.items.filter(i => i.id !== itemId);
                 if (order.items.length === 0) {
                     appState.orders = appState.orders.filter(o => o.id !== orderId);
@@ -1289,208 +1462,195 @@
         if (window.peopleCalendarInitialized) return;
         window.peopleCalendarInitialized = true;
 
-        const container = document.getElementById('people-calendar-container');
-        container.innerHTML = `
-            <div class="buttons">
-              <button id="pc-wheelchairBtn" class="btn">♿ Vozíčkáři</button>
-              <button id="pc-peopleBtn" class="btn">👥 Seznam směn</button>
-              <button id="pc-addBtn" class="btn btn-success">➕ Přidat do kalendáře</button>
-            </div>
-            <div class="stats">
-              <div class="stat" style="background:#ffd6d6"><h3>Odjezdy</h3><span id="pc-s-odj">0</span></div>
-              <div class="stat" style="background:#d6ffd6"><h3>Dovolená</h3><span id="pc-s-dov">0</span></div>
-              <div class="stat" style="background:#fff4c4"><h3>Nemoc</h3><span id="pc-s-nem">0</span></div>
-            </div>
-            <div class="month-bar">
-              <button id="pc-prev" class="btn">◄</button>
-              <h2 id="pc-lbl"></h2>
-              <button id="pc-next" class="btn">►</button>
-            </div>
-            <div class="calendar" id="pc-cal"></div>
-            <div class="summary" id="pc-sum"></div>
+        const pcDOMElements = {
+            grid: document.getElementById('pc-calendar-grid'),
+            monthDisplay: document.getElementById('pc-current-month-display'),
+            prevBtn: document.getElementById('pc-prev-month-btn'),
+            nextBtn: document.getElementById('pc-next-month-btn'),
+            showShiftsBtn: document.getElementById('pc-show-shifts-btn'),
+            shiftsModal: document.getElementById('pc-shifts-modal'),
+            addPersonBtn: document.getElementById('pc-add-person-btn'),
+            personModal: document.getElementById('pc-person-modal'),
+            personModalTitle: document.getElementById('pc-person-modal-title'),
+            savePersonBtn: document.getElementById('pc-save-person-btn'),
+            shift1List: document.getElementById('pc-shift1-list'),
+            shift2List: document.getElementById('pc-shift2-list'),
+            shift1Count: document.getElementById('pc-shift1-count'),
+            shift2Count: document.getElementById('pc-shift2-count'),
+            // Person form fields
+            personForm: {
+                firstName: document.getElementById('pc-person-firstname'),
+                lastName: document.getElementById('pc-person-lastname'),
+                chip: document.getElementById('pc-person-chip'),
+                phone: document.getElementById('pc-person-phone'),
+                shift: document.getElementById('pc-person-shift'),
+                gender: document.getElementById('pc-person-gender'),
+                position: document.getElementById('pc-person-position'),
+            }
+        };
+
+        let pcState = {
+            people: [],
+            ui: {
+                year: new Date().getFullYear(),
+                month: new Date().getMonth(),
+                editingPersonId: null,
+            }
+        };
+
+        const workPositions = ['bizzerba', 'řízky pas', 'dočistování', 'robot', 'icut', 'maykawa', 'manipulant', 'mleté maso', 'lima', 'kfc', 'špízy', 'nezařazené'];
+
+        function pcSaveState() {
+            localStorage.setItem('peopleCalendarData_v2', JSON.stringify({ people: pcState.people }));
+        }
+
+        function pcLoadState() {
+            const data = JSON.parse(localStorage.getItem('peopleCalendarData_v2'));
+            if (data) {
+                pcState.people = data.people || [];
+            }
+        }
+
+        function pcRenderCalendar() {
+            const { year, month } = pcState.ui;
+            pcDOMElements.monthDisplay.textContent = new Date(year, month).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+            const grid = pcDOMElements.grid;
+            grid.innerHTML = '';
+
+            const firstDayOfMonth = new Date(year, month, 1);
+            let dayOfWeek = firstDayOfMonth.getDay();
+            if (dayOfWeek === 0) dayOfWeek = 7;
+            const offset = dayOfWeek - 1;
+
+            let currentDate = new Date(firstDayOfMonth);
+            currentDate.setDate(currentDate.getDate() - offset);
+
+            for (let i = 0; i < 6; i++) {
+                for (let j = 0; j < 7; j++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'calendar-day';
+                    if (currentDate.getMonth() !== month) {
+                        dayCell.style.opacity = '0.5';
+                    }
+                    dayCell.innerHTML = `<div class="day-number">${currentDate.getDate()}</div>`;
+                    grid.appendChild(dayCell);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            }
+        }
+        
+        function pcShowShiftsModal() {
+            const { shift1List, shift2List, shift1Count, shift2Count } = pcDOMElements;
+            shift1List.innerHTML = '';
+            shift2List.innerHTML = '';
             
-            <!-- Modals for People Calendar -->
-            <div class="modal-overlay" id="pc-overlay">
-              <div class="modal">
-                <h2>Přidat událost</h2>
-                <form id="pc-frm">
-                  <label>Typ události</label>
-                  <select id="pc-typ"><option>Odjezd</option><option>Dovolená</option><option>Nemoc</option><option>Ranní</option><option>Odpolední</option><option>Noční</option></select>
-                  <label>Od</label><input type="date" id="pc-od" required>
-                  <label>Do (vol.)</label><input type="date" id="pc-do">
-                  <label>Čip</label><input id="pc-chip" required>
-                  <label>Pracovní místo</label>
-                  <select id="pc-place"><option value="Nezařazené">Nezařazené</option><option value="KFC">KFC</option><option value="Lima">Lima</option></select>
-                  <div class="actions">
-                    <button type="button" class="cancel btn" id="pc-cls">Zrušit</button>
-                    <button type="submit" class="save btn btn-primary">Uložit</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-            <div class="modal-overlay" id="pc-eventModal">
-              <div class="modal">
-                <h2>Události</h2>
-                <div id="pc-eventList"></div>
-                <div class="actions">
-                  <button class="cancel btn" id="pc-closeEventModal">Zavřít</button>
-                </div>
-              </div>
-            </div>
-            <div class="modal-overlay" id="pc-peopleOverlay">
-              <div class="modal people-modal">
-                <h2>Seznam směn</h2>
-                <div class="shifts">
-                  <div class="shift">
-                    <h3>Směna 1 (<span id="pc-countShift1">0</span>)</h3>
-                    <div id="pc-shift1List"></div>
-                  </div>
-                  <div class="shift">
-                    <h3>Směna 2 (<span id="pc-countShift2">0</span>)</h3>
-                    <div id="pc-shift2List"></div>
-                  </div>
-                </div>
-                <p id="pc-totalPeople"></p>
-                <div class="actions">
-                  <button id="pc-addPersonBtn" class="btn btn-success">Přidat osobu</button>
-                  <button class="cancel btn" id="pc-closePeople">Zavřít</button>
-                </div>
-              </div>
-            </div>
-            <div class="modal-overlay" id="pc-personOverlay">
-              <div class="modal">
-                <h2>Přidat/Upravit osobu</h2>
-                <form id="pc-personFrm">
-                  <label>Jméno</label><input id="pc-firstName" required>
-                  <label>Příjmení</label><input id="pc-lastName" required>
-                  <label>Čip</label><input id="pc-chipPerson" required>
-                  <label>Pracovní místo</label>
-                  <select id="pc-workPlace"><option value="Nezařazené">Nezařazené</option><option value="KFC">KFC</option></select>
-                  <label>Směna</label>
-                  <select id="pc-shift"><option value="Směna 1">Směna 1</option><option value="Směna 2">Směna 2</option></select>
-                  <div class="actions">
-                    <button type="button" class="cancel btn" id="pc-cancelPerson">Zrušit</button>
-                    <button type="submit" class="save btn btn-primary">Uložit</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-        `;
-        
-        const cal=document.getElementById('pc-cal'),lbl=document.getElementById('pc-lbl');
-        let cur=new Date(),ev=JSON.parse(localStorage.getItem("people_events") || "[]"),people=JSON.parse(localStorage.getItem("people_list") || "[]"),editingPersonIndex=-1, editingEventIndex = -1;
-        const icons={'Odjezd':'🚗','Dovolená':'🌴','Nemoc':'🤒','Ranní':'☀','Odpolední':'🌇','Noční':'🌙'};
-        const stats={'Odjezd':'pc-s-odj','Dovolená':'pc-s-dov','Nemoc':'pc-s-nem'};
+            const shift1 = pcState.people.filter(p => p.shift === '1');
+            const shift2 = pcState.people.filter(p => p.shift === '2');
 
-        function saveEvents(){localStorage.setItem("people_events",JSON.stringify(ev));}
-        function savePeople(){localStorage.setItem("people_list",JSON.stringify(people));}
+            shift1Count.textContent = shift1.length;
+            shift2Count.textContent = shift2.length;
 
-        function render() {
-          cal.innerHTML='';
-          const ym=cur.toLocaleString('cs-CZ',{month:'long',year:'numeric'});
-          lbl.textContent=ym.charAt(0).toUpperCase()+ym.slice(1);
-          const y=cur.getFullYear(),m=cur.getMonth();
-          const first=(new Date(y,m,1).getDay()||7)-1;
-          const days=new Date(y,m+1,0).getDate();
-          ['Po','Út','St','Čt','Pá','So','Ne'].forEach(d=>{const h=document.createElement('div');h.className='dow';h.textContent=d;cal.appendChild(h);});
-          for(let i=0;i<42;i++){const cell=document.createElement('div');cell.className='day';
-            const d=i-first+1;
-            if(i<first||d>days){cell.classList.add('disabled');cal.appendChild(cell);continue;}
-            const dateStr=new Date(y,m,d).toISOString().split('T')[0];
-            cell.dataset.date=dateStr;
-            if((i%7)==5|| (i%7)==6) cell.classList.add('weekend');
-            cell.innerHTML=`<span class='date'>${d}</span><div class='tags'></div>`;
-            cell.addEventListener('click',()=>show(dateStr));
-            cal.appendChild(cell);
-          }
-          update();
+            shift1.forEach(p => shift1List.innerHTML += createPersonItemHTML(p));
+            shift2.forEach(p => shift2List.innerHTML += createPersonItemHTML(p));
+            
+            pcDOMElements.shiftsModal.classList.add('active');
         }
+        
+        function createPersonItemHTML(person) {
+            return `
+                <div class="pc-person-item">
+                    <div class="pc-person-info">
+                        <strong>${person.firstName} ${person.lastName}</strong>
+                        <small>Čip: ${person.chip} | ${person.position}</small>
+                    </div>
+                    <div>
+                        <button class="btn-icon" data-action="pc-edit-person" data-id="${person.id}">${ICONS.edit}</button>
+                        <button class="btn-icon danger" data-action="pc-delete-person" data-id="${person.id}">${ICONS.trash}</button>
+                    </div>
+                </div>`;
+        }
+        
+        function pcOpenPersonModal(personId = null) {
+            pcState.ui.editingPersonId = personId;
+            const form = pcDOMElements.personForm;
+            
+            form.position.innerHTML = workPositions.map(p => `<option value="${p}">${p.charAt(0).toUpperCase() + p.slice(1)}</option>`).join('');
 
-        function update() {
-          document.querySelectorAll('#people-calendar-container .tags').forEach(t=>t.textContent='');
-          for(const k in stats) document.getElementById(stats[k]).textContent=0;
-          const sum={},currentMonth=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0');
-          ev.forEach(e=>{
-            const eventMonth=e.date.slice(0,7);
-            if(eventMonth===currentMonth){
-              const tg=document.querySelector(`#people-calendar-container [data-date='${e.date}'] .tags`);if(tg) tg.textContent+=icons[e.typ] || '';
-              if (stats[e.typ]) document.getElementById(stats[k]).textContent=+document.getElementById(stats[k]).textContent+1;
-              if(e.place) sum[e.place]=(sum[e.place]||0)+1;
+            if (personId) {
+                const person = pcState.people.find(p => p.id === personId);
+                pcDOMElements.personModalTitle.textContent = 'Upravit osobu';
+                form.firstName.value = person.firstName;
+                form.lastName.value = person.lastName;
+                form.chip.value = person.chip;
+                form.phone.value = person.phone;
+                form.shift.value = person.shift;
+                form.gender.value = person.gender;
+                form.position.value = person.position;
+            } else {
+                pcDOMElements.personModalTitle.textContent = 'Přidat osobu';
+                Object.values(form).forEach(input => input.value = '');
+                form.shift.value = '1';
+                form.gender.value = 'muz';
             }
-          });
-          const s=document.getElementById('pc-sum');s.innerHTML='';
-          for(const p in sum){const div=document.createElement('div');div.className='post';div.textContent=`${p}: ${sum[p]}`;s.appendChild(div);}
-        }
-
-        function show(d) {
-          const list=ev.filter(e=>e.date===d);
-          const eventList = document.getElementById('pc-eventList');
-          eventList.innerHTML = list.length ? list.map((e, idx) => `<div class="event-item"><span>${e.chip} – ${e.typ}</span></div>`).join('') : '<p>Žádné události tento den</p>';
-          document.getElementById('pc-eventModal').style.display = 'flex';
+            pcDOMElements.personModal.classList.add('active');
         }
         
-        function showPeople() {
-            const shift1=people.filter(p=>p.shift==='Směna 1'),shift2=people.filter(p=>p.shift==='Směna 2');
-            document.getElementById('pc-shift1List').innerHTML=shift1.length?shift1.map((p,idx)=>{const globalIdx=people.indexOf(p);return`<div class="person-item"><span>${p.firstName} ${p.lastName} (${p.chipPerson}) - ${p.workPlace}</span><div><button class="edit" onclick="window.pcFunctions.editPerson(${globalIdx})">Upravit</button><button class="delete" onclick="window.pcFunctions.deletePerson(${globalIdx})">Odebrat</button></div></div>`;}).join(''):'<p>Žádní lidé</p>';
-            document.getElementById('pc-shift2List').innerHTML=shift2.length?shift2.map((p,idx)=>{const globalIdx=people.indexOf(p);return`<div class="person-item"><span>${p.firstName} ${p.lastName} (${p.chipPerson}) - ${p.workPlace}</span><div><button class="edit" onclick="window.pcFunctions.editPerson(${globalIdx})">Upravit</button><button class="delete" onclick="window.pcFunctions.deletePerson(${globalIdx})">Odebrat</button></div></div>`;}).join(''):'<p>Žádní lidé</p>';
-            document.getElementById('pc-countShift1').textContent=shift1.length;
-            document.getElementById('pc-countShift2').textContent=shift2.length;
-            document.getElementById('pc-totalPeople').textContent=`Celkem: ${people.length}`;
-            document.getElementById('pc-peopleOverlay').style.display='flex';
-        }
-
-        window.pcFunctions = {
-            editPerson: (index) => {
-              editingPersonIndex=index;
-              const p=people[index];
-              document.getElementById('pc-firstName').value=p.firstName;
-              document.getElementById('pc-lastName').value=p.lastName;
-              document.getElementById('pc-chipPerson').value=p.chipPerson;
-              document.getElementById('pc-workPlace').value=p.workPlace;
-              document.getElementById('pc-shift').value=p.shift;
-              document.getElementById('pc-personOverlay').style.display='flex';
-            },
-            deletePerson: (index) => {
-              if(confirm('Opravdu odebrat?')){
-                const deletedChip = people[index].chipPerson;
-                ev = ev.filter(e => e.chip !== deletedChip);
-                people.splice(index,1);
-                savePeople();
-                saveEvents();
-                showPeople();
-                update();
-              }
+        function pcSavePerson() {
+            const form = pcDOMElements.personForm;
+            if (!form.firstName.value || !form.lastName.value || !form.chip.value) {
+                showToast('Jméno, příjmení a čip jsou povinné.', 'error');
+                return;
             }
-        };
+            
+            const personData = {
+                id: pcState.ui.editingPersonId || generateId(),
+                firstName: form.firstName.value,
+                lastName: form.lastName.value,
+                chip: form.chip.value,
+                phone: form.phone.value,
+                shift: form.shift.value,
+                gender: form.gender.value,
+                position: form.position.value,
+            };
+
+            if (pcState.ui.editingPersonId) {
+                const index = pcState.people.findIndex(p => p.id === pcState.ui.editingPersonId);
+                pcState.people[index] = personData;
+            } else {
+                pcState.people.push(personData);
+            }
+            
+            pcSaveState();
+            pcShowShiftsModal();
+            pcDOMElements.personModal.classList.remove('active');
+            showToast('Osoba uložena');
+        }
         
-        document.getElementById('pc-prev').onclick=()=>{cur.setMonth(cur.getMonth()-1);render();};
-        document.getElementById('pc-next').onclick=()=>{cur.setMonth(cur.getMonth()+1);render();};
-        document.getElementById('pc-addBtn').onclick=()=>document.getElementById('pc-overlay').style.display='flex';
-        document.getElementById('pc-cls').onclick=()=>document.getElementById('pc-overlay').style.display='none';
-        document.getElementById('pc-frm').onsubmit=e=>{e.preventDefault();
-            const data={typ:document.getElementById('pc-typ').value,od:document.getElementById('pc-od').value,
-                       do:document.getElementById('pc-do').value,chip:document.getElementById('pc-chip').value,place:document.getElementById('pc-place').value};
-            if(!data.od||!data.chip){alert('Vyplň povinná pole');return;}
-            ev.push({...data,date:data.od});
-            saveEvents();
-            document.getElementById('pc-overlay').style.display='none';
-            e.target.reset();update();
-        };
-        document.getElementById('pc-closeEventModal').onclick = () => document.getElementById('pc-eventModal').style.display = 'none';
-        document.getElementById('pc-peopleBtn').onclick=showPeople;
-        document.getElementById('pc-closePeople').onclick=()=>document.getElementById('pc-peopleOverlay').style.display='none';
-        document.getElementById('pc-addPersonBtn').onclick=()=>{editingPersonIndex=-1;document.getElementById('pc-personFrm').reset();document.getElementById('pc-personOverlay').style.display='flex';};
-        document.getElementById('pc-cancelPerson').onclick=()=>document.getElementById('pc-personOverlay').style.display='none';
-        document.getElementById('pc-personFrm').onsubmit=e=>{e.preventDefault();
-          const data={firstName:document.getElementById('pc-firstName').value,lastName:document.getElementById('pc-lastName').value,chipPerson:document.getElementById('pc-chipPerson').value,workPlace:document.getElementById('pc-workPlace').value,shift:document.getElementById('pc-shift').value};
-          if(!data.firstName||!data.lastName||!data.chipPerson){alert('Vyplň povinná pole');return;}
-          if(editingPersonIndex>=0){people[editingPersonIndex]=data;}else{people.push(data);}
-          savePeople();
-          document.getElementById('pc-personOverlay').style.display='none';
-          e.target.reset();showPeople();
-        };
+        function pcDeletePerson(personId) {
+            if (confirm('Opravdu chcete smazat tuto osobu?')) {
+                pcState.people = pcState.people.filter(p => p.id !== personId);
+                pcSaveState();
+                pcShowShiftsModal();
+                showToast('Osoba smazána', 'error');
+            }
+        }
+
+        pcDOMElements.prevBtn.onclick = () => { pcState.ui.month--; if(pcState.ui.month < 0) { pcState.ui.month = 11; pcState.ui.year--; } pcRenderCalendar(); };
+        pcDOMElements.nextBtn.onclick = () => { pcState.ui.month++; if(pcState.ui.month > 11) { pcState.ui.month = 0; pcState.ui.year++; } pcRenderCalendar(); };
+        pcDOMElements.showShiftsBtn.onclick = pcShowShiftsModal;
+        pcDOMElements.addPersonBtn.onclick = () => pcOpenPersonModal();
+        pcDOMElements.savePersonBtn.onclick = pcSavePerson;
         
-        render();
+        document.body.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+            const { action, id } = target.dataset;
+            if (action === 'pc-edit-person') pcOpenPersonModal(id);
+            if (action === 'pc-delete-person') pcDeletePerson(id);
+        });
+
+        pcLoadState();
+        pcRenderCalendar();
     }
     </script>
 </body>
