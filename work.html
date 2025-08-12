@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="cs" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surovinový Manažer 2.0</title>
+    <title>DZ Control</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -125,9 +126,9 @@
         .btn-icon svg { width: 20px; height: 20px; stroke: var(--text-secondary); }
         .btn-icon.danger:hover svg { stroke: var(--accent-danger); }
 
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table th, .data-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        .data-table th { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary); }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .data-table th, .data-table td { padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .data-table th { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); }
         .data-table tr:last-child td { border-bottom: none; }
         .data-table .actions { text-align: right; }
         .shortage { color: var(--accent-danger); font-weight: 600; }
@@ -171,18 +172,55 @@
         .day-items { display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem; }
         .day-pill { background-color: var(--accent-primary); color: white; padding: 2px 5px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .day-pill.is-order { background-color: var(--accent-success); }
-
+        
+        /* People Calendar Specific Styles */
+        #people-calendar-container {
+            --primary:#0d6efd;
+            --radius:8px;
+        }
+        #people-calendar-container .stats{display:flex;gap:14px;justify-content:center;margin-bottom:20px}
+        #people-calendar-container .stat{flex:1 1 120px;background:var(--bg-secondary);padding:10px;border-radius:var(--radius);text-align:center;box-shadow:var(--shadow)}
+        #people-calendar-container .stat h3{margin-bottom:4px;font-size:14px}
+        #people-calendar-container .month-bar{display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:14px}
+        #people-calendar-container .month-bar button{background:var(--accent-primary);color:#fff;border:0;border-radius:var(--radius);padding:6px 10px;font-weight:600;cursor:pointer}
+        #people-calendar-container .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+        #people-calendar-container .dow, #people-calendar-container .day{border:1px solid var(--border-color);background:var(--bg-secondary);min-height:80px;display:flex;flex-direction:column}
+        #people-calendar-container .dow{background:var(--bg-tertiary);align-items:center;justify-content:center;font-weight:700;min-height:30px}
+        #people-calendar-container .day.disabled{background:var(--bg-tertiary)}
+        #people-calendar-container .day span.date{font-size:12px;font-weight:600;padding:4px}
+        #people-calendar-container .day .tags{font-size:12px;line-height:1.2;padding:2px 4px}
+        #people-calendar-container .weekend{background:var(--bg-tertiary)}
+        #people-calendar-container .buttons {display: flex; justify-content: space-between; margin-bottom: 10px;}
+        #people-calendar-container .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1001}
+        #people-calendar-container .modal{background:var(--bg-secondary);padding:20px;border-radius:var(--radius);width:90%;max-width:800px}
+        #people-calendar-container .modal label{display:block;margin:8px 0 2px;font-size:14px;font-weight:600}
+        #people-calendar-container .modal input,#people-calendar-container .modal select{width:100%;padding:6px;border:1px solid var(--border-color);border-radius:6px;font-size:14px; background: var(--bg-secondary); color: var(--text-primary)}
+        #people-calendar-container .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+        #people-calendar-container .actions button{border:0;border-radius:var(--radius);padding:6px 12px;font-weight:600;cursor:pointer}
+        #people-calendar-container .cancel{background:#6c757d;color:#fff}
+        #people-calendar-container .save{background:var(--accent-primary);color:#fff}
+        #people-calendar-container .summary{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+        #people-calendar-container .post{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:6px 10px;font-size:13px}
+        #people-calendar-container .event-item {display: flex; justify-content: space-between; align-items: center; margin: 8px 0; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px;}
+        #people-calendar-container .event-item button {padding: 4px 8px; font-size: 12px; border: 0; border-radius: 4px; cursor: pointer; background: var(--accent-primary); color: #fff;}
+        #people-calendar-container .people-modal .shifts{display:flex;gap:20px}
+        #people-calendar-container .people-modal .shift{flex:1}
+        #people-calendar-container .people-modal .person-item{display:flex;justify-content:space-between;align-items:center;margin:8px 0;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px}
+        #people-calendar-container .people-modal .person-item button{padding:4px 8px;font-size:12px;border:0;border-radius:4px;cursor:pointer}
+        #people-calendar-container .people-modal .person-item button.edit{background:var(--accent-primary);color:#fff;margin-right:4px}
+        #people-calendar-container .people-modal .person-item button.delete{background:var(--accent-danger);color:#fff}
     </style>
 </head>
 <body>
 
     <nav id="app-nav">
         <div>
-            <div class="nav-header">Suroviny 2.0</div>
+            <div class="nav-header">DZ Control</div>
             <div class="nav-links">
                 <a href="#" class="nav-link active" data-view="daily-plan"><span>Denní Plán</span></a>
                 <a href="#" class="nav-link" data-view="orders"><span>Objednávky</span></a>
                 <a href="#" class="nav-link" data-view="calendar"><span>Kalendář akcí</span></a>
+                <a href="#" class="nav-link" data-view="people-calendar"><span>Kalendář lidí</span></a>
                 <a href="#" class="nav-link" data-view="box-weights"><span>Váhy beden</span></a>
                 <a href="#" class="nav-link" data-view="create-mix"><span>Vytvořit mix</span></a>
                 <a href="#" class="nav-link" data-view="palette-weights"><span>Váhy palet</span></a>
@@ -217,7 +255,7 @@
             <div class="accordion" id="orders-accordion"></div>
         </div>
         
-        <!-- 3. Kalendář View -->
+        <!-- 3. Kalendář akcí View -->
         <div id="view-calendar" class="page">
             <h1 class="page-header">Kalendář akcí</h1>
             <div class="card">
@@ -232,8 +270,15 @@
                  </div>
             </div>
         </div>
+        
+        <!-- 4. Kalendář lidí View -->
+        <div id="view-people-calendar" class="page">
+             <div id="people-calendar-container">
+                <!-- Injected HTML from user file -->
+             </div>
+        </div>
 
-        <!-- 4. Váhy Beden View -->
+        <!-- 5. Váhy Beden View -->
         <div id="view-box-weights" class="page">
             <h1 class="page-header">Váhy beden dle zákazníka</h1>
             <div class="card">
@@ -244,7 +289,7 @@
             </div>
         </div>
 
-        <!-- 5. Vytvořit Mix View -->
+        <!-- 6. Vytvořit Mix View -->
         <div id="view-create-mix" class="page">
             <h1 class="page-header" id="create-mix-header">Vytvořit nový mix</h1>
             <div class="card">
@@ -273,7 +318,7 @@
             </div>
         </div>
 
-        <!-- 6. Váhy Palet View -->
+        <!-- 7. Váhy Palet View -->
         <div id="view-palette-weights" class="page">
             <h1 class="page-header">Váhy palet</h1>
             <div class="card">
@@ -351,10 +396,10 @@
         </div>
     </div>
 
-
     <div id="toast-container"></div>
 
     <script>
+    // --- MAIN APP SCRIPT ---
     document.addEventListener('DOMContentLoaded', () => {
         const ICONS = {
             trash: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
@@ -362,6 +407,7 @@
         };
 
         let appState = {};
+        let peopleCalendarInitialized = false;
 
         const DOMElements = {
             navLinks: document.querySelectorAll('.nav-link'),
@@ -574,6 +620,7 @@
                 case 'daily-plan': renderDailyPlan(); break;
                 case 'orders': renderOrders(); break;
                 case 'calendar': renderCalendar(); break;
+                case 'people-calendar': initPeopleCalendar(); break;
                 case 'box-weights': renderBoxWeights(); break;
                 case 'create-mix': renderCreateMix(); break;
                 case 'palette-weights': renderPaletteWeights(); break;
@@ -1236,6 +1283,215 @@
         bindEvents();
         render();
     });
+    
+    // --- PEOPLE CALENDAR SCRIPT ---
+    function initPeopleCalendar() {
+        if (window.peopleCalendarInitialized) return;
+        window.peopleCalendarInitialized = true;
+
+        const container = document.getElementById('people-calendar-container');
+        container.innerHTML = `
+            <div class="buttons">
+              <button id="pc-wheelchairBtn" class="btn">♿ Vozíčkáři</button>
+              <button id="pc-peopleBtn" class="btn">👥 Seznam směn</button>
+              <button id="pc-addBtn" class="btn btn-success">➕ Přidat do kalendáře</button>
+            </div>
+            <div class="stats">
+              <div class="stat" style="background:#ffd6d6"><h3>Odjezdy</h3><span id="pc-s-odj">0</span></div>
+              <div class="stat" style="background:#d6ffd6"><h3>Dovolená</h3><span id="pc-s-dov">0</span></div>
+              <div class="stat" style="background:#fff4c4"><h3>Nemoc</h3><span id="pc-s-nem">0</span></div>
+            </div>
+            <div class="month-bar">
+              <button id="pc-prev" class="btn">◄</button>
+              <h2 id="pc-lbl"></h2>
+              <button id="pc-next" class="btn">►</button>
+            </div>
+            <div class="calendar" id="pc-cal"></div>
+            <div class="summary" id="pc-sum"></div>
+            
+            <!-- Modals for People Calendar -->
+            <div class="modal-overlay" id="pc-overlay">
+              <div class="modal">
+                <h2>Přidat událost</h2>
+                <form id="pc-frm">
+                  <label>Typ události</label>
+                  <select id="pc-typ"><option>Odjezd</option><option>Dovolená</option><option>Nemoc</option><option>Ranní</option><option>Odpolední</option><option>Noční</option></select>
+                  <label>Od</label><input type="date" id="pc-od" required>
+                  <label>Do (vol.)</label><input type="date" id="pc-do">
+                  <label>Čip</label><input id="pc-chip" required>
+                  <label>Pracovní místo</label>
+                  <select id="pc-place"><option value="Nezařazené">Nezařazené</option><option value="KFC">KFC</option><option value="Lima">Lima</option></select>
+                  <div class="actions">
+                    <button type="button" class="cancel btn" id="pc-cls">Zrušit</button>
+                    <button type="submit" class="save btn btn-primary">Uložit</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <div class="modal-overlay" id="pc-eventModal">
+              <div class="modal">
+                <h2>Události</h2>
+                <div id="pc-eventList"></div>
+                <div class="actions">
+                  <button class="cancel btn" id="pc-closeEventModal">Zavřít</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal-overlay" id="pc-peopleOverlay">
+              <div class="modal people-modal">
+                <h2>Seznam směn</h2>
+                <div class="shifts">
+                  <div class="shift">
+                    <h3>Směna 1 (<span id="pc-countShift1">0</span>)</h3>
+                    <div id="pc-shift1List"></div>
+                  </div>
+                  <div class="shift">
+                    <h3>Směna 2 (<span id="pc-countShift2">0</span>)</h3>
+                    <div id="pc-shift2List"></div>
+                  </div>
+                </div>
+                <p id="pc-totalPeople"></p>
+                <div class="actions">
+                  <button id="pc-addPersonBtn" class="btn btn-success">Přidat osobu</button>
+                  <button class="cancel btn" id="pc-closePeople">Zavřít</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal-overlay" id="pc-personOverlay">
+              <div class="modal">
+                <h2>Přidat/Upravit osobu</h2>
+                <form id="pc-personFrm">
+                  <label>Jméno</label><input id="pc-firstName" required>
+                  <label>Příjmení</label><input id="pc-lastName" required>
+                  <label>Čip</label><input id="pc-chipPerson" required>
+                  <label>Pracovní místo</label>
+                  <select id="pc-workPlace"><option value="Nezařazené">Nezařazené</option><option value="KFC">KFC</option></select>
+                  <label>Směna</label>
+                  <select id="pc-shift"><option value="Směna 1">Směna 1</option><option value="Směna 2">Směna 2</option></select>
+                  <div class="actions">
+                    <button type="button" class="cancel btn" id="pc-cancelPerson">Zrušit</button>
+                    <button type="submit" class="save btn btn-primary">Uložit</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+        `;
+        
+        const cal=document.getElementById('pc-cal'),lbl=document.getElementById('pc-lbl');
+        let cur=new Date(),ev=JSON.parse(localStorage.getItem("people_events") || "[]"),people=JSON.parse(localStorage.getItem("people_list") || "[]"),editingPersonIndex=-1, editingEventIndex = -1;
+        const icons={'Odjezd':'🚗','Dovolená':'🌴','Nemoc':'🤒','Ranní':'☀','Odpolední':'🌇','Noční':'🌙'};
+        const stats={'Odjezd':'pc-s-odj','Dovolená':'pc-s-dov','Nemoc':'pc-s-nem'};
+
+        function saveEvents(){localStorage.setItem("people_events",JSON.stringify(ev));}
+        function savePeople(){localStorage.setItem("people_list",JSON.stringify(people));}
+
+        function render() {
+          cal.innerHTML='';
+          const ym=cur.toLocaleString('cs-CZ',{month:'long',year:'numeric'});
+          lbl.textContent=ym.charAt(0).toUpperCase()+ym.slice(1);
+          const y=cur.getFullYear(),m=cur.getMonth();
+          const first=(new Date(y,m,1).getDay()||7)-1;
+          const days=new Date(y,m+1,0).getDate();
+          ['Po','Út','St','Čt','Pá','So','Ne'].forEach(d=>{const h=document.createElement('div');h.className='dow';h.textContent=d;cal.appendChild(h);});
+          for(let i=0;i<42;i++){const cell=document.createElement('div');cell.className='day';
+            const d=i-first+1;
+            if(i<first||d>days){cell.classList.add('disabled');cal.appendChild(cell);continue;}
+            const dateStr=new Date(y,m,d).toISOString().split('T')[0];
+            cell.dataset.date=dateStr;
+            if((i%7)==5|| (i%7)==6) cell.classList.add('weekend');
+            cell.innerHTML=`<span class='date'>${d}</span><div class='tags'></div>`;
+            cell.addEventListener('click',()=>show(dateStr));
+            cal.appendChild(cell);
+          }
+          update();
+        }
+
+        function update() {
+          document.querySelectorAll('#people-calendar-container .tags').forEach(t=>t.textContent='');
+          for(const k in stats) document.getElementById(stats[k]).textContent=0;
+          const sum={},currentMonth=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0');
+          ev.forEach(e=>{
+            const eventMonth=e.date.slice(0,7);
+            if(eventMonth===currentMonth){
+              const tg=document.querySelector(`#people-calendar-container [data-date='${e.date}'] .tags`);if(tg) tg.textContent+=icons[e.typ] || '';
+              if (stats[e.typ]) document.getElementById(stats[k]).textContent=+document.getElementById(stats[k]).textContent+1;
+              if(e.place) sum[e.place]=(sum[e.place]||0)+1;
+            }
+          });
+          const s=document.getElementById('pc-sum');s.innerHTML='';
+          for(const p in sum){const div=document.createElement('div');div.className='post';div.textContent=`${p}: ${sum[p]}`;s.appendChild(div);}
+        }
+
+        function show(d) {
+          const list=ev.filter(e=>e.date===d);
+          const eventList = document.getElementById('pc-eventList');
+          eventList.innerHTML = list.length ? list.map((e, idx) => `<div class="event-item"><span>${e.chip} – ${e.typ}</span></div>`).join('') : '<p>Žádné události tento den</p>';
+          document.getElementById('pc-eventModal').style.display = 'flex';
+        }
+        
+        function showPeople() {
+            const shift1=people.filter(p=>p.shift==='Směna 1'),shift2=people.filter(p=>p.shift==='Směna 2');
+            document.getElementById('pc-shift1List').innerHTML=shift1.length?shift1.map((p,idx)=>{const globalIdx=people.indexOf(p);return`<div class="person-item"><span>${p.firstName} ${p.lastName} (${p.chipPerson}) - ${p.workPlace}</span><div><button class="edit" onclick="window.pcFunctions.editPerson(${globalIdx})">Upravit</button><button class="delete" onclick="window.pcFunctions.deletePerson(${globalIdx})">Odebrat</button></div></div>`;}).join(''):'<p>Žádní lidé</p>';
+            document.getElementById('pc-shift2List').innerHTML=shift2.length?shift2.map((p,idx)=>{const globalIdx=people.indexOf(p);return`<div class="person-item"><span>${p.firstName} ${p.lastName} (${p.chipPerson}) - ${p.workPlace}</span><div><button class="edit" onclick="window.pcFunctions.editPerson(${globalIdx})">Upravit</button><button class="delete" onclick="window.pcFunctions.deletePerson(${globalIdx})">Odebrat</button></div></div>`;}).join(''):'<p>Žádní lidé</p>';
+            document.getElementById('pc-countShift1').textContent=shift1.length;
+            document.getElementById('pc-countShift2').textContent=shift2.length;
+            document.getElementById('pc-totalPeople').textContent=`Celkem: ${people.length}`;
+            document.getElementById('pc-peopleOverlay').style.display='flex';
+        }
+
+        window.pcFunctions = {
+            editPerson: (index) => {
+              editingPersonIndex=index;
+              const p=people[index];
+              document.getElementById('pc-firstName').value=p.firstName;
+              document.getElementById('pc-lastName').value=p.lastName;
+              document.getElementById('pc-chipPerson').value=p.chipPerson;
+              document.getElementById('pc-workPlace').value=p.workPlace;
+              document.getElementById('pc-shift').value=p.shift;
+              document.getElementById('pc-personOverlay').style.display='flex';
+            },
+            deletePerson: (index) => {
+              if(confirm('Opravdu odebrat?')){
+                const deletedChip = people[index].chipPerson;
+                ev = ev.filter(e => e.chip !== deletedChip);
+                people.splice(index,1);
+                savePeople();
+                saveEvents();
+                showPeople();
+                update();
+              }
+            }
+        };
+        
+        document.getElementById('pc-prev').onclick=()=>{cur.setMonth(cur.getMonth()-1);render();};
+        document.getElementById('pc-next').onclick=()=>{cur.setMonth(cur.getMonth()+1);render();};
+        document.getElementById('pc-addBtn').onclick=()=>document.getElementById('pc-overlay').style.display='flex';
+        document.getElementById('pc-cls').onclick=()=>document.getElementById('pc-overlay').style.display='none';
+        document.getElementById('pc-frm').onsubmit=e=>{e.preventDefault();
+            const data={typ:document.getElementById('pc-typ').value,od:document.getElementById('pc-od').value,
+                       do:document.getElementById('pc-do').value,chip:document.getElementById('pc-chip').value,place:document.getElementById('pc-place').value};
+            if(!data.od||!data.chip){alert('Vyplň povinná pole');return;}
+            ev.push({...data,date:data.od});
+            saveEvents();
+            document.getElementById('pc-overlay').style.display='none';
+            e.target.reset();update();
+        };
+        document.getElementById('pc-closeEventModal').onclick = () => document.getElementById('pc-eventModal').style.display = 'none';
+        document.getElementById('pc-peopleBtn').onclick=showPeople;
+        document.getElementById('pc-closePeople').onclick=()=>document.getElementById('pc-peopleOverlay').style.display='none';
+        document.getElementById('pc-addPersonBtn').onclick=()=>{editingPersonIndex=-1;document.getElementById('pc-personFrm').reset();document.getElementById('pc-personOverlay').style.display='flex';};
+        document.getElementById('pc-cancelPerson').onclick=()=>document.getElementById('pc-personOverlay').style.display='none';
+        document.getElementById('pc-personFrm').onsubmit=e=>{e.preventDefault();
+          const data={firstName:document.getElementById('pc-firstName').value,lastName:document.getElementById('pc-lastName').value,chipPerson:document.getElementById('pc-chipPerson').value,workPlace:document.getElementById('pc-workPlace').value,shift:document.getElementById('pc-shift').value};
+          if(!data.firstName||!data.lastName||!data.chipPerson){alert('Vyplň povinná pole');return;}
+          if(editingPersonIndex>=0){people[editingPersonIndex]=data;}else{people.push(data);}
+          savePeople();
+          document.getElementById('pc-personOverlay').style.display='none';
+          e.target.reset();showPeople();
+        };
+        
+        render();
+    }
     </script>
 </body>
 </html>
